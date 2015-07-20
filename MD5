@@ -1,0 +1,12 @@
+a9154390e00572ebf61321561e53f44f *DESCRIPTION
+5e87de381fd0df3bfbc4d38cb119aea3 *NAMESPACE
+564beda387578cbcaa6fc1ac66caae17 *R/bayesian.R
+c3dad65ceed8d87ed1d12ad668ed1421 *R/entirelogprofilelikelihood.R
+ef143cc0edbf44e5f45fccfee9587438 *R/logprofilelikelihood.R
+2935e2a8dc6f1c6358d48d2681dcfd11 *data/simple.RData
+b03d807e5517da2f7d410cd1b9c98d3e *man/bayesian.Rd
+1a89b618414e10b8051534e15aca0192 *man/entirelogprofilelikelihood.Rd
+0a46733c865435f1596353d2f220476f *man/logprofilelikelihood.Rd
+14f006cfd6692ba944d710c6129a4983 *man/simple.Rd
+c521083a76fe96f67c13c87f30a8e059 *man/timedelay-internal.Rd
+844160c2900f3120d7200350f31462c5 *man/timedelay-package.Rd
