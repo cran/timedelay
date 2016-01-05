@@ -8,7 +8,7 @@
 }
 
 \description{
-  We simulated a simple data set of a doubly-lensed quasar with generative parameter values (Delta, c, mu, sigma, tau) equal to (50, 2, 0, 0.03, 100). The number of epochs is 78 and measurement errors are the same to 0.005.
+  We simulated a simple data set of a doubly-lensed quasar with generative parameter values (Delta, beta0, mu, sigma, tau) equal to (50, 2, 0, 0.03, 100). The number of epochs is 78 and measurement errors are the same to 0.005.
 }
 
 \usage{data(simple)}

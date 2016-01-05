@@ -1,8 +1,10 @@
 ### posterior samples of O-U parameters (mu, sigma, and tau)
-postTheta <- function (data, X, delta, c, previous.theta, tau.jump, 
+
+postTheta <- function (data, X, delta, previous.theta, tau.jump, 
                         tau.thresh, tau.prior.a, tau.prior.b, sigma.prior.a, sigma.prior.b) {
 
   time <- data[, 1]
+  leng.time <- length(time)
   time.d <- time - delta
   time.temp <- c(time, time.d)
   ord <- order(time.temp)
@@ -22,7 +24,8 @@ postTheta <- function (data, X, delta, c, previous.theta, tau.jump,
                      ( 1 + sum( (1 - a.i) / (1 + a.i) ) )
   mu.sd <- sqrt( tau * sigma^2 / 2 /
                          ( 1 + sum( (1 - a.i) / (1 + a.i) ) ) )
-  inv.cdf <- runif(1, min = pnorm(-30, mean = mu.mean, sd = mu.sd), max = pnorm(30, mean = mu.mean, sd = mu.sd))
+  inv.cdf <- runif(1, min = pnorm(-30, mean = mu.mean, sd = mu.sd), 
+                      max = pnorm(30, mean = mu.mean, sd = mu.sd))
   mu <- qnorm(inv.cdf, mean = mu.mean, sd = mu.sd)
 
   # updating sigma
@@ -57,12 +60,16 @@ postTheta <- function (data, X, delta, c, previous.theta, tau.jump,
 
 
 ### log likelihood function of all the model parameters
-logpostDelta <- function(delta, data, theta, c, log, unif) {
+logpostDelta <- function(delta, data, theta, c, log, unif, micro) {
 
   time <- data[, 1]
   leng.time <- length(time)
 
   if (delta < unif[1] | delta > unif[2]) {
+
+    -Inf
+
+  } else if (theta[1] < -30 | theta[1] > 30) {
 
     -Inf
 
@@ -91,11 +98,24 @@ logpostDelta <- function(delta, data, theta, c, log, unif) {
     ord <- order(time.temp)
     time.comb <- time.temp[ord]
     leng.time.comb <- length(time.comb)
-  
+
+    # microlensing  
+    if (micro == 0) {
+      mat.temp <- matrix(c(rep(1, leng.time)), ncol = 1)
+    } else if (micro == 1) {
+      mat.temp <- matrix(c(rep(1, leng.time), time.d), ncol = 2)
+    } else if (micro == 2) {
+      mat.temp <- matrix(c(rep(1, leng.time), time.d, time.d^2), ncol = 3)
+    } else if (micro == 3) {
+      mat.temp <- matrix(c(rep(1, leng.time), time.d, time.d^2, time.d^3), ncol = 4)
+    }
+
+    c.pred <- mat.temp %*% c
+
     # indicator taking on 1 for X(t - delta) and 0 for X(t)
     ind <- c(rep(0, leng.time), rep(1, leng.time))[ord]
 
-    lc.temp <- c(lcA, lcB - c)
+    lc.temp <- c(lcA, lcB - c.pred)
     lc.comb <- lc.temp[ord]
     se.lc.temp <- c(se.lcA, se.lcB)
     se.lc.comb <- se.lc.temp[ord]
@@ -178,7 +198,7 @@ logpostDelta <- function(delta, data, theta, c, log, unif) {
 
 
 ### posterior samples of the latent true magnitudes
-postX <- function(data, X, theta, delta, c, log) {
+postX <- function(data, X, theta, delta, c, log, micro) {
 
   time <- data[, 1]
   leng.time <- length(time)
@@ -210,7 +230,19 @@ postX <- function(data, X, theta, delta, c, log) {
   # indicator taking on 1 for X(t - delta) and 0 for X(t)
   ind <- c(rep(0, leng.time), rep(1, leng.time))[ord]
 
-  lc.temp <- c(lcA, lcB - c)
+  if (micro == 0) {
+    mat.temp <- matrix(c(rep(1, leng.time)), ncol = 1)
+  } else if (micro == 1) {
+    mat.temp <- matrix(c(rep(1, leng.time), time.d), ncol = 2)
+  } else if (micro == 2) {
+    mat.temp <- matrix(c(rep(1, leng.time), time.d, time.d^2), ncol = 3)
+  } else if (micro == 3) {
+    mat.temp <- matrix(c(rep(1, leng.time), time.d, time.d^2, time.d^3), ncol = 4)
+  }
+
+  c.pred <- mat.temp %*% c
+
+  lc.temp <- c(lcA, lcB - c.pred)
   lc.comb <- lc.temp[ord]
   se.lc.temp <- c(se.lcA, se.lcB)
   se.lc.comb <- se.lc.temp[ord]
@@ -267,44 +299,28 @@ bayesian <- function(data, data.flux,
                      delta.ini, delta.uniform.range, delta.proposal.scale, 
                      tau.proposal.scale, tau.prior.shape, tau.prior.scale, 
                      sigma.prior.shape, sigma.prior.scale,                        
-                     asis = TRUE, 
-                     adaptive.freqeuncy = 500,
-                     adaptive.delta = TRUE, adaptive.delta.factor = 0.05,
-                     adaptive.delta.acceptance.rate.upper.bound = 0.4,
-                     adaptive.delta.acceptance.rate.lower.bound = 0.2,
-                     adaptive.tau = TRUE, adaptive.tau.factor = 0.05,
-                     adaptive.tau.acceptance.rate.upper.bound = 0.4,
-                     adaptive.tau.acceptance.rate.lower.bound = 0.2,
-                     tempered.transition = FALSE, number.rungs = 10, temperature.base = 3,
+                     asis = TRUE, micro, 
+                     adaptive.freqeuncy = 100,
+                     adaptive.delta = TRUE, adaptive.delta.factor = 0.01,
+                     adaptive.tau = TRUE, adaptive.tau.factor = 0.01,
                      sample.size = 50, warmingup.size = 50) {
 
-  if (asis == TRUE & adaptive.delta == TRUE & adaptive.tau == TRUE & tempered.transition == FALSE) {
-    print("Options of the Bayesian method: ASIS for c, Adaptive MCMC for Delta, and Adaptive MCMC for tau")
-  } else if (asis == TRUE & adaptive.delta == TRUE & adaptive.tau == FALSE & tempered.transition == FALSE) {
-    print("Options of the Bayesian method: ASIS for c and Adaptive MCMC for Delta")
-  } else if (asis == TRUE & adaptive.delta == FALSE & adaptive.tau == TRUE & tempered.transition == FALSE) {
-    print("Options of the Bayesian method: ASIS for c and Adaptive MCMC for tau")
-  } else if (asis == TRUE & adaptive.delta == FALSE & adaptive.tau == FALSE & tempered.transition == FALSE) {
-    print("Options of the Bayesian method: ASIS for c")
-  } else if (asis == TRUE & adaptive.delta == FALSE & adaptive.tau == FALSE & tempered.transition == TRUE) {
-    print("Options of the Bayesian method: ASIS for c and Tempered transition for Delta")
-  } else if (asis == FALSE & adaptive.delta == FALSE & adaptive.tau == FALSE & tempered.transition == FALSE) {
-    print("Options of the Bayesian method: None")
-  } else if (adaptive.delta == TRUE & tempered.transition == TRUE) {
-    print("The tempered transition for Delta should not accompany the adaptive MCMC for Delta.")
-    quit()
-  } else if (asis == TRUE & adaptive.delta == FALSE & adaptive.tau == TRUE & tempered.transition == TRUE) {
-    print("Options of the Bayesian method: ASIS for c, Adaptive MCMC for tau, and Tempered transition for Delta")
-  } else if (asis == FALSE & adaptive.delta == FALSE & adaptive.tau == FALSE & tempered.transition == TRUE) {
-    print("Options of the Bayesian method: Tempered transition for Delta")
-  } else if (asis == FALSE & adaptive.delta == FALSE & adaptive.tau == TRUE & tempered.transition == TRUE) {
-    print("Options of the Bayesian method:  Adaptive MCMC for tau and Tempered transition for Delta")
-  } else if (asis == FALSE & adaptive.delta == TRUE & adaptive.tau == TRUE & tempered.transition == FALSE) {
-    print("Options of the Bayesian method:  Adaptive MCMC for Delta and tau")
-  } else if (asis == FALSE & adaptive.delta == TRUE & adaptive.tau == FALSE & tempered.transition == FALSE) {
-    print("Options of the Bayesian method:  Adaptive MCMC for Delta")
-  } else if (asis == FALSE & adaptive.delta == FALSE & adaptive.tau == TRUE & tempered.transition == FALSE) {
-    print("Options of the Bayesian method:  Adaptive MCMC for tau")
+  if (asis == TRUE & adaptive.delta == TRUE & adaptive.tau == TRUE) {
+    print("Options for the Bayesian method: ASIS for beta, Adaptive MCMC for Delta, and Adaptive MCMC for tau")
+  } else if (asis == TRUE & adaptive.delta == TRUE & adaptive.tau == FALSE) {
+    print("Options for the Bayesian method: ASIS for beta and Adaptive MCMC for Delta")
+  } else if (asis == TRUE & adaptive.delta == FALSE & adaptive.tau == TRUE) {
+    print("Options for the Bayesian method: ASIS for beta and Adaptive MCMC for tau")
+  } else if (asis == FALSE & adaptive.delta == TRUE & adaptive.tau == TRUE) {
+    print("Options for the Bayesian method:  Adaptive MCMC for Delta and tau")
+  } else if (asis == TRUE & adaptive.delta == FALSE & adaptive.tau == FALSE) {
+    print("Options for the Bayesian method: ASIS for beta")
+  } else if (asis == FALSE & adaptive.delta == TRUE & adaptive.tau == FALSE) {
+    print("Options for the Bayesian method:  Adaptive MCMC for Delta")
+  } else if (asis == FALSE & adaptive.delta == FALSE & adaptive.tau == TRUE) {
+    print("Options for the Bayesian method:  Adaptive MCMC for tau")
+  } else if (asis == FALSE & adaptive.delta == FALSE & adaptive.tau == FALSE) {
+    print("Options for the Bayesian method: None")
   }
 
   print(paste("Starting time:", Sys.time()))
@@ -318,7 +334,6 @@ bayesian <- function(data, data.flux,
   se.lcA <- data[, 3]
   lcB <- data[, 4]
   se.lcB <- data[, 5]
-  c.ini <- mean(lcB) - mean(lcA)
 
   if (data.flux == TRUE) {
     # transform into log scale
@@ -326,99 +341,69 @@ bayesian <- function(data, data.flux,
     lcA <- -2.5 * log(lcA, base = 10)
     se.lcB <- se.lcB * 2.5 / lcB / log(10)
     lcB <- -2.5 * log(lcB, base = 10)
-    c.ini <- mean(lcB) - mean(lcA)
   }
 
   delta.t <- delta.ini  # delta ini
   mu.t <- theta.ini[1]  # mu ini
   sigma.t <- theta.ini[2]  #sigma ini
   tau.t <- theta.ini[3]  #tau ini
-  c.t <- c.ini  # c ini
 
   # sorting time given delta
   time.d <- time - delta.t
   time.temp <- c(time, time.d)
   ord <- order(time.temp)
-  X.t <- c(lcA, lcB - c.t)[ord]  # X ini
+  ti2 <- time.d^2
+  ti3 <- time.d^3
+
+  if (micro == 0) {
+    lm.res <- lm(lcB - mean(lcA) ~ 1)
+  } else if (micro == 1) {
+    lm.res <- lm(lcB - mean(lcA) ~ time.d)
+  } else if (micro == 2) {
+    lm.res <- lm(lcB - mean(lcA) ~ time.d + ti2)
+  } else if (micro == 3) {
+    lm.res <- lm(lcB - mean(lcA) ~ time.d + ti2 + ti3)
+  }
+
+  resid <- lm.res$residuals
+  X.t <- c(lcA, resid + mean(lcA))[ord]  # X ini
+  c.t <- lm.res$coefficients  # beta ini
 
   mu.out <- rep(NA, total.sample.size)
   sigma.out <- rep(NA, total.sample.size)
   tau.out <- rep(NA, total.sample.size)
   delta.out <- rep(NA, total.sample.size)
-  c.out <- rep(NA, total.sample.size)
+  c.out <- matrix(NA, nrow = total.sample.size, ncol = (micro + 1))
 
   tau.accept <- rep(0, total.sample.size)
   delta.accept <- rep(0, total.sample.size)
   
   tau.jumps <- tau.proposal.scale * rnorm(total.sample.size)
   tau.thresh <- -rexp(total.sample.size)  
+  tau.proposal.scale.adapt <- 1
 
   delta.jumps <- delta.proposal.scale * rnorm(total.sample.size)
   delta.thresh <- -rexp(total.sample.size)
-
   delta.proposal.scale.adapt <- 1
-  tau.proposal.scale.adapt <- 1
+
 
   for (i in 1 : total.sample.size) {
 
-    if (tempered.transition == TRUE) {
+    # delta and X(t) update
+    delta.p <- delta.t + delta.proposal.scale.adapt * delta.jumps[i]
+    l.metrop <- logpostDelta(delta.p, data, c(mu.t, sigma.t, tau.t), c.t, 
+                             log = data.flux, unif = delta.uniform.range, micro) -
+	            logpostDelta(delta.t, data, c(mu.t, sigma.t, tau.t), c.t, 
+                             log = data.flux, unif = delta.uniform.range, micro)
 
-      # delta and X(t) update
-      temperature <- temperature.base ^(1 : number.rungs)
-      candi <- delta.proposal.scale * rnorm(number.rungs * 2)
-      thresh.candi <- -rexp(number.rungs * 2)
-      delta.save <- rep(NA, number.rungs * 2 + 1)
-      delta.save[1] <- delta.t
-      tempupdown <- c(temperature[1 : number.rungs], temperature[number.rungs : 1])
-
-      for (j in 1 : (2 * number.rungs)) {
-        delta.p <- delta.save[j] + candi[j]    
-        metrop <- (logpostDelta(delta.p, data, c(mu.t, sigma.t, tau.t), c.t, 
-                                  log = data.flux, unif = delta.uniform.range) -
-	               logpostDelta(delta.save[j], data, c(mu.t, sigma.t, tau.t), c.t, 
-                                  log = data.flux, unif = delta.uniform.range)) / tempupdown[j]
-        if (metrop > thresh.candi[j]) { 
-          delta.save[j + 1] <- delta.p 
-        } else {
-          delta.save[j + 1] <- delta.save[j]
-        }
-      }
-
-      E <- sapply(1 : (2 * number.rungs + 1), function(t) { 
-          -logpostDelta(delta.save[t], data, c(mu.t, sigma.t, tau.t), c.t, 
-                          log = data.flux, unif = delta.uniform.range)
-      })
-    
-      l.energy <- diff(1 / c(1, temperature)) %*% E[(2 * number.rungs + 1) : (number.rungs + 2)] - 
-                  diff(1 / c(1, temperature)) %*% E[1 : number.rungs]  #LOG(exp(-(F_d-F_u)))
-
-      if (l.energy > delta.thresh[i]) { 
-	    delta.t <- delta.save[2 * number.rungs + 1] 
-        delta.accept[i] <- 1
-	    X.t <- postX(data, X.t, theta = c(mu.t, sigma.t, tau.t), 
-	                  delta = delta.t, c = c.t, log = data.flux)
-      }
-	
-      delta.out[i] <- delta.t  
-
-    } else {
-
-      # delta and X(t) update
-	  delta.p <- delta.t + delta.proposal.scale.adapt * delta.jumps[i]
-      l.metrop <- logpostDelta(delta.p, data, c(mu.t, sigma.t, tau.t), c.t, 
-                                 log = data.flux, unif = delta.uniform.range) -
-	              logpostDelta(delta.t, data, c(mu.t, sigma.t, tau.t), c.t, 
-                                 log = data.flux, unif = delta.uniform.range)
-      if (l.metrop > delta.thresh[i]) { 
+    if (l.metrop > delta.thresh[i]) { 
         delta.t <- delta.p 
         delta.accept[i] <- 1
         X.t <- postX(data, X.t, theta = c(mu.t, sigma.t, tau.t), 
-                      delta = delta.t, c = c.t, log = data.flux)
-      }
-	
-      delta.out[i] <- delta.t  
-
+                      delta = delta.t, c = c.t, log = data.flux, micro)
     }
+	
+    delta.out[i] <- delta.t  
 
     time.d <- time - delta.t
     time.temp <- c(time, time.d)
@@ -427,39 +412,66 @@ bayesian <- function(data, data.flux,
     leng.X <- length(X.t)
     lc.comb <- c(lcA, lcB)[ord]
     se.lc.comb <- c(se.lcA, se.lcB)[ord]
+    time.sort <- time.temp[ord]
 
     # c update
-    c.t.mean <- sum( (lc.comb - X.t) * ind / se.lc.comb^2 )  / sum( ind / se.lc.comb^2 )
-    c.t.sd <- 1 / sqrt(sum( ind / se.lc.comb^2 ))
-    inv.cdf <- runif(1, min = pnorm(-60, mean = c.t.mean, sd = c.t.sd), 
-                        max = pnorm(60, mean = c.t.mean, sd = c.t.sd))
-    c.t <- c.out[i] <- qnorm(inv.cdf, mean = c.t.mean, sd = c.t.sd)
+    if (micro == 0) {
+      T.mat <- matrix(c(rep(1, leng.time)), ncol = 1)
+    } else if (micro == 1) {
+      T.mat <- matrix(c(rep(1, leng.time), time.d), ncol = 2)
+    } else if (micro == 2) {
+      T.mat <- matrix(c(rep(1, leng.time), time.d, time.d^2), ncol = 3)
+    } else if (micro == 3) {
+      T.mat <- matrix(c(rep(1, leng.time), time.d, time.d^2, time.d^3), ncol = 4)
+    }
+
+    V.inv.mat <- diag(1 / se.lcB^2)
+    c.t.var.inv.temp <- t(T.mat) %*% V.inv.mat %*% T.mat
+    c.t.var.temp <- chol2inv(chol(c.t.var.inv.temp))
+    c.t.mean.temp <- c.t.var.temp %*% t(T.mat) %*% V.inv.mat %*% (lcB - X.t[ind == 1])
+    c.t.var <- chol2inv(chol(c.t.var.inv.temp + diag(micro + 1) / 10^5))
+    c.t.mean <- c.t.var %*% c.t.var.inv.temp %*% c.t.mean.temp
+    c.t <- c.out[i, ] <- rmnorm(1, mean = c.t.mean, varcov = c.t.var)
+
 
     if (asis == TRUE) {
-      K.t <- X.t + c.t * ind
+
+      if (micro == 0) {
+        T.mat <- matrix(c(rep(1, 2 * leng.time)), ncol = 1) 
+      } else if (micro == 1) {
+        T.mat <- matrix(c(rep(1, 2 * leng.time), time.sort), ncol = 2) 
+      } else if (micro == 2) {
+        T.mat <- matrix(c(rep(1, 2 * leng.time), time.sort, time.sort^2), ncol = 3) 
+      } else if (micro == 3) {
+        T.mat <- matrix(c(rep(1, 2 * leng.time), time.sort, time.sort^2, time.sort^3), ncol = 4) 
+      }
+
+      K.t <- X.t + T.mat %*% c.t * ind
       K.t.cent <- K.t - mu.t
-      time.comb <- time.temp[ord]
-      time.diff <- diff(time.comb)
+      time.diff <- diff(time.sort)
       # i = 2, 3, ..., 2n
       a.i <- exp( - time.diff / tau.t )
 
       y.c <- c(K.t.cent[1], K.t.cent[-1] - a.i * K.t.cent[-leng.X])
-      X.c <- c(ind[1], ind[-1] - a.i * ind[-leng.X])
-      V.inv.elem <- c(1, 1 / (1 - a.i^2))  #tau * sigma^2 /2 cancelled   
-      XVX <- t(X.c * V.inv.elem) %*% X.c 
-      c.mean <- t(X.c * V.inv.elem) %*% y.c  / XVX
-      c.sd <- sqrt(tau.t * sigma.t^2 / 2 / XVX)
-      inv.cdf <- runif(1, min = pnorm(-60, mean = c.mean, sd = c.sd), 
-                          max = pnorm(60, mean = c.mean, sd = c.sd))
-      c.t <- c.out[i] <- qnorm(inv.cdf, mean = c.mean, sd = c.sd)
+      if (micro == 0) {
+        X.c <- c(ind[1] * T.mat[1, ], ind[-1] * T.mat[-1, ] - a.i * ind[-leng.X] * T.mat[-leng.X, ])
+      } else {
+        X.c <- rbind(ind[1] * T.mat[1, ], 
+                     ind[-1] * T.mat[-1, ] - a.i * ind[-leng.X] * T.mat[-leng.X, ])
+      }
 
-      X.t <- K.t - c.t * ind    # synchronization
+      V.inv.elem <- c(1, 1 / (1 - a.i^2)) / (tau.t * sigma.t^2 / 2)
+      XVX <- t(X.c * V.inv.elem) %*% X.c
+      c.var <- chol2inv(chol(t(X.c * V.inv.elem) %*% X.c + diag(micro + 1) / 10^5))
+      c.mean <- c.var %*% t(X.c * V.inv.elem) %*% y.c
+      c.t <- c.out[i, ] <- rmnorm(1, mean = c.mean, varcov = c.var)
+      X.t <- K.t - T.mat %*% c.t * ind    # synchronization
 
     }
 
     # theta update
     tau.jump.adapt <- tau.proposal.scale.adapt * tau.jumps[i]
-    theta.update <- postTheta(data, X = X.t, delta = delta.t, c = c.t, 
+    theta.update <- postTheta(data, X = X.t, delta = delta.t, 
                                previous.theta = c(mu.t, sigma.t, tau.t), 
                                tau.jump = tau.jump.adapt, tau.thresh = tau.thresh[i],
                                tau.prior.a = tau.prior.shape, tau.prior.b = tau.prior.scale, 
@@ -473,14 +485,11 @@ bayesian <- function(data, data.flux,
     sigma.t <- sigma.out[i] <- theta.update[2]
     tau.t <- tau.out[i] <- theta.update[3]
 
-
     if (adaptive.delta == TRUE) {
       if (i %% adaptive.freqeuncy == 0) {
-        if(mean(delta.accept[i - (adaptive.freqeuncy - 1) : i]) > 
-           adaptive.delta.acceptance.rate.upper.bound) {
+        if(mean(delta.accept[i - (adaptive.freqeuncy - 1) : i]) > 0.44) {
           scale.adj <- exp(min(adaptive.delta.factor, 1 / sqrt(i / adaptive.freqeuncy)))
-        } else if (mean(delta.accept[i - (adaptive.freqeuncy - 1) : i]) < 
-                   adaptive.delta.acceptance.rate.lower.bound) {
+        } else if (mean(delta.accept[i - (adaptive.freqeuncy - 1) : i]) < 0.23) {
           scale.adj <- exp(-min(adaptive.delta.factor, 1 / sqrt(i / adaptive.freqeuncy)))
         } else {
           scale.adj <- 1
@@ -491,11 +500,9 @@ bayesian <- function(data, data.flux,
 
     if (adaptive.tau == TRUE) {
       if (i %% adaptive.freqeuncy == 0) {
-        if(mean(tau.accept[i - (adaptive.freqeuncy - 1) : i]) > 
-           adaptive.tau.acceptance.rate.upper.bound) {
+        if(mean(tau.accept[i - (adaptive.freqeuncy - 1) : i]) > 0.44) {
           scale.adj <- exp(min(adaptive.tau.factor, 1 / sqrt(i / adaptive.freqeuncy)))
-        } else if (mean(tau.accept[i - (adaptive.freqeuncy - 1) : i]) < 
-                   adaptive.tau.acceptance.rate.lower.bound) {
+        } else if (mean(tau.accept[i - (adaptive.freqeuncy - 1) : i]) < 0.23) {
           scale.adj <- exp(-min(adaptive.tau.factor, 1 / sqrt(i / adaptive.freqeuncy)))
         } else {
           scale.adj <- 1
@@ -509,7 +516,7 @@ bayesian <- function(data, data.flux,
   print(paste("Ending time:", Sys.time()))
 
   out <- list(delta = delta.out[-c(1 : warmingup.size)],
-              c = c.out[-c(1 : warmingup.size)],
+              beta = c.out[-c(1 : warmingup.size)],
               mu = mu.out[-c(1 : warmingup.size)], 
               sigma = sigma.out[-c(1 : warmingup.size)], 
               tau = tau.out[-c(1 : warmingup.size)],

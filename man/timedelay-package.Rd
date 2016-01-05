@@ -13,7 +13,7 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
     Version: \tab 1.0.0\cr
     Date: \tab 2015-05-25\cr
     License: \tab GPL-2\cr
-    Main functions: \tab \code{\link{bayesian}}, \code{\link{logprofilelikelihood}}, \code{\link{entirelogprofilelikelihood}}\cr
+    Main functions: \tab \code{\link{bayesian}}, \code{\link{entirelogprofilelikelihood}}\cr
   }
 
 }
@@ -35,18 +35,19 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
   # Time delay estimation via Bayesian approach #
   ###############################################
 
-  output <- bayesian(dat = simple, data.flux = FALSE, theta.ini = c(0, 0.03, 100), 
-                     delta.ini = 50, delta.uniform.range = c(0, 100), delta.proposal.scale = 0.3, 
-                     tau.proposal.scale = 2, tau.prior.shape = 1, tau.prior.scale = 1,
-                     sigma.prior.shape = 1, sigma.prior.scale = 2 * 10^(-7), asis = TRUE,
-                     sample.size = 50, warmingup.size = 50)
+
+  # Cubic microlensing model (m = 3)
+  output = bayesian(dat = simple, data.flux = FALSE, theta.ini = c(0, 0.03, 100), 
+                    delta.ini = 50, delta.uniform.range = c(0, 100), 
+                    delta.proposal.scale = 1, 
+                    tau.proposal.scale = 3, tau.prior.shape = 1, tau.prior.scale = 1,
+                    sigma.prior.shape = 1, sigma.prior.scale = 2 / 10^7, asis = TRUE, micro = 3,
+                    sample.size = 100, warmingup.size = 50)
 
   names(output)
-  hist(output$delta, 30, xlab = expression(bold(Delta)), 
-       main = expression(bold(paste("Histogram of posterior ", Delta))))
-  plot(output$delta, ylab = expression(bold(Delta)), xlab = "Iteration",
-       main = expression(bold(paste("Traceplot of posterior ", Delta))), type = "l")
-  acf(output$delta, main = expression(bold(paste("ACF of posterior ", Delta))))
+  # hist(output$delta)
+  # plot(output$delta, type = "l")
+  # acf(output$delta)
 
   ### Argument description
 
@@ -66,43 +67,24 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
   #                    the Inverse-Gamma hyper-prior distribution for sigma^2.
   # sigma.prior.scale: The scale parameter of 
   #                    the Inverse-Gamma hyper-prior distribution for sigma^2.
+  # micro: It determines the order of a polynomial regression model that accounts 
+  #        for the difference between microlensing trends. Default is 3. 
+  #        When zero is assigned, the Bayesian model fits a curve-shifted model.
 
   # asis: "TRUE" if we use the ancillarity-sufficiency interweaving strategy (ASIS) 
   #       for c (always recommended)
 
   # adaptive.freqeuncy: The adaptive MCMC is applied for every specified frequency. 
-  #                     If it is specified as 500, 
-  #                     the adaptive MCMC is applied to every 500th iterstion.
+  #                     If it is specified as 100, 
+  #                     the adaptive MCMC is applied to every 100th iterstion.
   # adaptive.delta: "TRUE" if we use the adaptive MCMC for the time delay.
   # adaptive.delta.factor: The factor, exp(adaptive.delta.factor) or exp(-adaptive.delta.factor), 
   #                        multiplied to the proposal scale of the time delay for adaptive MCMC.
-  # adaptive.delta.acceptance.rate.upper.bound: We multiply exp(adaptive.delta.factor) 
-  #                                             to the proposal scale of the time delay 
-  #                                             if the acceptance rate of the time delay 
-  #                                             is greater than this number
-  # adaptive.delta.acceptance.rate.lower.bound: We multiply exp(-adaptive.delta.factor) 
-  #                                             to the proposal scale of the time delay 
-  #                                             if the acceptance rate of the time delay 
-  #                                             is smaller than this number
+  #                        Default is 0.01.
 
   # adaptive.tau: "TRUE" if we use the adaptive MCMC for tau.
   # adaptive.tau.factor: The factor, exp(adaptive.tau.factor) or exp(-adaptive.tau.factor), 
   #                      multiplied to the proposal scale of tau for adaptive MCMC.
-  # adaptive.tau.acceptance.rate.upper.bound: We multiply exp(adaptive.tau.factor) 
-  #                                           to the proposal scale of tau
-  #                                           if the acceptance rate of tau
-  #                                           is greater than this number
-  # adaptive.tau.acceptance.rate.lower.bound: We multiply exp(-adaptive.tau.factor) 
-  #                                           to the proposal scale of tau
-  #                                           if the acceptance rate of tau
-  #                                           is smaller than this number
-
-  # tempered.transition: "TRUE" if we use the tempered transition.
-  #                      We recommend not using the adaptive MCMC for the time delay 
-  #                      together with the tempered transition,
-  #                      i.e., "adaptive.delta = FALSE" if "tempered.transition = TRUE"
-  # number.rungs: The number of rungs in the temperature ladder
-  # temperature.base: The temerature of the i-th rung is (temperature.base)^i
 
   # sample.size: The number of posterior samples for each parameter
   # warmingup.size: The number of burn-ins
@@ -111,42 +93,29 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
   # Time delay estimation via profile likelihood #
   ################################################
 
-  ###### Individual profile likelihood value
-  theta.ini = c(0, 0.03, 100)
-  c.ini <- mean(simple[, 4]) - mean(simple[, 2])
-  delta.uniform.range <- c(0, 100)
-
-  ###  Running the following codes takes more time than CRAN policy
-  ###  Please type the following two lines without "#"  to run the function
-  #  logprofilelikelihood(Delta = 40, initial = c(theta.ini, c.ini), data = simple, 
-  #                       data.flux = FALSE, delta.uniform.range = delta.uniform.range)
-
-  ### Argument description
-
-  # Delta: The log profile likelihood value at this number.
-  # initial: The initial values of the other model parameters (mu, sigma, tau, c)
-  # data: The data set   
-  # data.flux: "True" if data are recorded on flux scale or "FALSE" if data are on magnitude scale.
-  # delta.uniform.range: The range of the Uniform prior distribution for the time delay.
-
-  # This function "logprofilelikelihood" can be used to find the maximum profile likelihood estimate
-  # and the inverse of the negative Hessian at the mode.
-  # See the example in the manual by typing "?logprofilelikelihood" at the R console.
-
   ###### The entire profile likelihood values on the grid of values of the time delay.
 
-  grid <- seq(45, 55, by = 5)
+  # Cubic microlensing model
+  ti1 <- simple[, 1]
+  ti2 <- simple[, 1]^2
+  ti3 <- simple[, 1]^3
+  ss <- lm(simple[, 4] - simple[, 2]~ ti1 + ti2 + ti3)
+
+  initial <- c(mean(simple[, 2]), log(0.01), log(200), ss$coefficients)
+  delta.uniform.range <- c(0, 100)
+  grid <- seq(0, 100, by = 0.1) 
   # grid interval "by = 0.1" is recommended for accuracy.
 
   ###  Running the following codes takes more time than CRAN policy
   ###  Please type the following lines without "#" to run the function and to see the results
   #  logprof <- entirelogprofilelikelihood(data = simple, grid = grid, 
-  #                                        initial = c(theta.ini, c.ini), data.flux = FALSE, 
-  #                                        delta.uniform.range = delta.uniform.range)
+  #                                        initial = initial, data.flux = FALSE, 
+  #                                        delta.uniform.range = delta.uniform.range, micro = 3)
+
   #  plot(grid, logprof, type = "l", 
   #       xlab = expression(bold(Delta)),       
   #       ylab = expression(bold(paste("log L"[prof], "(", Delta, ")"))))
-  #  prof <- exp(logprof - max(logprof))
+  #  prof <- exp(logprof - max(logprof))  # normalization
   #  plot(grid, prof, type = "l", 
   #       xlab = expression(bold(Delta)),       
   #       ylab = expression(bold(paste("L"[prof], "(", Delta, ")"))))
@@ -156,9 +125,12 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
   # data: The data set   
   # grid: the vector of grid values of the time delay 
   #       on which the log profile likelihood values are calculated.
-  # initial: The initial values of the other model parameters (mu, sigma, tau, c)
+  # initial: The initial values of the other model parameters (mu, log(sigma), log(tau), beta)
   # data.flux: "True" if data are recorded on flux scale or "FALSE" if data are on magnitude scale.
   # delta.uniform.range: The range of the Uniform prior distribution for the time delay.
+  # micro: It determines the order of a polynomial regression model that accounts 
+  #        for the difference between microlensing trends. Default is 3. 
+  #        When zero is assigned, the Bayesian model fits a curve-shifted model.
 
 }
 

@@ -5,7 +5,7 @@
   \code{entirelogprofilelikelihood} calculates the entire profilel likelihood curve over the given grid values of the time delay. 
 }
 
-\usage{entirelogprofilelikelihood(data, grid, initial, data.flux, delta.uniform.range)}
+\usage{entirelogprofilelikelihood(data, grid, initial, data.flux, delta.uniform.range, micro)}
 
 \arguments{
   \item{data}{
@@ -15,13 +15,16 @@
     A vector containing values of the time delay on which the profile likelihood values are calculated. We recommend using the grid interval equal to 0.1.
   }
   \item{initial}{
-    The initial values of the other model parameters (mu, sigma, tau, c)
+    The initial values of the other model parameters (mu, log(sigma), log(tau), beta). We take log on sigma and tau for numerical stability.
   }
   \item{data.flux}{
     "True" if data are recorded on flux scale or "FALSE" if data are on magnitude scale.
   }
   \item{delta.uniform.range}{
     The range of the Uniform prior distribution for the time delay. The feasible entire support is c(min(simple[, 1]) - max(simple[, 1]), max(simple[, 1]) - min(simple[, 1])).
+  }
+  \item{micro}{
+    It determines the order of a polynomial regression model that accounts for the difference between microlensing trends. Default is 3. When zero is assigned, the Bayesian model fits a curve-shifted model.
   }
 
 }
@@ -54,17 +57,22 @@
 
   ###### The entire profile likelihood values on the grid of values of the time delay.
 
-  theta.ini = c(0, 0.03, 100)
-  c.ini <- mean(simple[, 4]) - mean(simple[, 2])
+  # Cubic microlensing model
+  ti1 <- simple[, 1]
+  ti2 <- simple[, 1]^2
+  ti3 <- simple[, 1]^3
+  ss <- lm(simple[, 4] - simple[, 2]~ ti1 + ti2 + ti3)
+
+  initial <- c(mean(simple[, 2]), log(0.01), log(200), ss$coefficients)
   delta.uniform.range <- c(0, 100)
-  grid <- seq(40, 60, by = 4) 
+  grid <- seq(0, 100, by = 0.1) 
   # grid interval "by = 0.1" is recommended.
 
   ###  Running the following codes takes more time than CRAN policy
   ###  Please type the following lines without "#" to run the function and to see the results
   #  logprof <- entirelogprofilelikelihood(data = simple, grid = grid, 
-  #                                        initial = c(theta.ini, c.ini), data.flux = FALSE, 
-  #                                        delta.uniform.range = delta.uniform.range)
+  #                                        initial = initial, data.flux = FALSE, 
+  #                                        delta.uniform.range = delta.uniform.range, micro = 3)
 
   #  plot(grid, logprof, type = "l", 
   #       xlab = expression(bold(Delta)),       

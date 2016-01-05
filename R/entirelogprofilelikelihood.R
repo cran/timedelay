@@ -1,10 +1,14 @@
 ### log likelihood function of all the model parameters
-logpostDelta <- function(delta, data, theta, c, log, unif) {
+logpostDelta <- function(delta, data, theta, c, log, unif, micro) {
 
   time <- data[, 1]
   leng.time <- length(time)
 
   if (delta < unif[1] | delta > unif[2]) {
+
+    -Inf
+
+  } else if (theta[1] < -30 | theta[1] > 30) {
 
     -Inf
 
@@ -33,11 +37,24 @@ logpostDelta <- function(delta, data, theta, c, log, unif) {
     ord <- order(time.temp)
     time.comb <- time.temp[ord]
     leng.time.comb <- length(time.comb)
-  
+
+    # microlensing  
+    if (micro == 0) {
+      mat.temp <- matrix(c(rep(1, leng.time)), ncol = 1)
+    } else if (micro == 1) {
+      mat.temp <- matrix(c(rep(1, leng.time), time.d), ncol = 2)
+    } else if (micro == 2) {
+      mat.temp <- matrix(c(rep(1, leng.time), time.d, time.d^2), ncol = 3)
+    } else if (micro == 3) {
+      mat.temp <- matrix(c(rep(1, leng.time), time.d, time.d^2, time.d^3), ncol = 4)
+    }
+
+    c.pred <- mat.temp %*% c
+
     # indicator taking on 1 for X(t - delta) and 0 for X(t)
     ind <- c(rep(0, leng.time), rep(1, leng.time))[ord]
 
-    lc.temp <- c(lcA, lcB - c)
+    lc.temp <- c(lcA, lcB - c.pred)
     lc.comb <- lc.temp[ord]
     se.lc.temp <- c(se.lcA, se.lcB)
     se.lc.comb <- se.lc.temp[ord]
@@ -120,7 +137,7 @@ logpostDelta <- function(delta, data, theta, c, log, unif) {
 
 
 ### entire log profile-likelihood curve
-entirelogprofilelikelihood <- function(data, grid, initial, data.flux, delta.uniform.range) {
+entirelogprofilelikelihood <- function(data, grid, initial, data.flux, delta.uniform.range, micro) {
 
   res.save <- rep(NA, length(grid))
 
@@ -129,13 +146,17 @@ entirelogprofilelikelihood <- function(data, grid, initial, data.flux, delta.uni
     delta.temp <- grid[i]
 
     optim_delta <- function(th) {
-      theta <- th[1 : 3]
-      c <- th[4]
-      logpostDelta(delta.temp, data, theta, c, log = data.flux, unif = delta.uniform.range) 
+      mu <- th[1]
+      sigma <- exp(th[2])
+      tau <- exp(th[3])
+      c <- th[4 : (micro + 4)]
+      logpostDelta(delta.temp, data, c(mu, sigma, tau), c, log = data.flux, 
+                   unif = delta.uniform.range, micro) 
     }
 
     res.temp <- optim(initial, optim_delta, control = list(fnscale = -1), 
-                      hessian = FALSE, method = "L-BFGS-B", lower = c(-30, 0, 0, -60), upper = c(30, Inf, Inf, 60))
+                      hessian = FALSE, method = "BFGS")
+
     res.save[i] <- res.temp$value
     initial <- res.temp$par 
 
