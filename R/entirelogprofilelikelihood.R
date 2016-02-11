@@ -146,11 +146,9 @@ entirelogprofilelikelihood <- function(data, grid, initial, data.flux, delta.uni
     delta.temp <- grid[i]
 
     optim_delta <- function(th) {
-      mu <- th[1]
-      sigma <- exp(th[2])
-      tau <- exp(th[3])
+      theta <- th[1 : 3]
       c <- th[4 : (micro + 4)]
-      logpostDelta(delta.temp, data, c(mu, sigma, tau), c, log = data.flux, 
+      logpostDelta(delta.temp, data, theta, c, log = data.flux, 
                    unif = delta.uniform.range, micro) 
     }
 
