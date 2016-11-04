@@ -4,7 +4,7 @@
 \docType{package}
 \title{Time Delay Estimation for Stochastic Time Series of Gravitationally Lensed Quasars}
 \description{
-The R package \pkg{timedelay} provides a toolbox to estimate the time delay between the brightness time series of gravitationally lensed quasar images via Bayesian and profile likelihood approaches. The model is based on a state-space representation for  irregularly observed time series data generated from a latent continuous-time Ornstein-Uhlenbeck process. Our Bayesian method adopts scientifically motivated hyper-prior distributions and a Metropoli-Hastings within Gibbs sampler, producing posterior samples of the model parameters that include the time delay. A profile likelihood of the time delay is a simple approximation to the marginal posterior distribution of the time delay. Both Bayesian and profile likelihood approaches complement each other, producing almost identical results; the Bayesian way is more principled but the profile likelihood is easier to be implemented.
+The R package \pkg{timedelay} provides a toolbox to estimate the time delay between the brightness time series of gravitationally lensed quasar images via Bayesian and profile likelihood approaches. The model is based on a state-space representation for irregularly observed time series data generated from a latent continuous-time Ornstein-Uhlenbeck process. Our Bayesian method adopts scientifically motivated hyper-prior distributions and a Metropoli-Hastings within Gibbs sampler, producing posterior samples of the model parameters that include the time delay. A profile likelihood of the time delay is a simple approximation to the marginal posterior distribution of the time delay. Both Bayesian and profile likelihood approaches complement each other, producing almost identical results; the Bayesian way is more principled but the profile likelihood is easier to be implemented.
 }
 \details{
   \tabular{ll}{
@@ -23,13 +23,30 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
   Maintainer: Hyungsuk Tak <hyungsuk.tak@gmail.com>
 }
 \references{
-  Hyungsuk Tak, Kaisey Mandel, David A. van Dyk, Vinay L. Kashyap, Xiao-Li Meng, and Aneta Siemiginowska (in progress). Bayesian and Profile Likelihood Approaches to Time Delay Estimation for Stochastic Time Series of Gravitationally Lensed Quasars}
-
+    Hyungsuk Tak, Kaisey Mandel, David A. van Dyk, Vinay L. Kashyap, Xiao-Li Meng, and Aneta Siemiginowska (2016+). "Bayesian Estimates of Astronomical Time Delays between Gravitationally Lensed Stochastic Light Curves," tentatively accepted in Annals of Applied Statistics (ArXiv 1602.01462).
+}
 \examples{
 
   # Loading datasets
   data(simple)
   head(simple)
+
+  # A typical quasar data set  
+  library(mnormt)
+
+  # Subset (data for image A) of the typical quasar data set
+  lcA <- simple[, 1 : 3]
+
+  # Another subset (data for image B) of the typical quasar data set
+  # The observation times for image B are not necessarily the same as those for image A
+  lcB <- simple[, c(1, 4, 5)]
+
+  # The two subsets do not need to have the same number of observations
+  # For example, here we add one more observation time for image B
+  lcB <- rbind(lcB, c(290, 1.86, 0.006))
+
+  dim(lcA)
+  dim(lcB)
 
   ###############################################
   # Time delay estimation via Bayesian approach #
@@ -37,12 +54,15 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
 
 
   # Cubic microlensing model (m = 3)
-  output = bayesian(dat = simple, data.flux = FALSE, theta.ini = c(0, 0.03, 100), 
-                    delta.ini = 50, delta.uniform.range = c(0, 100), 
-                    delta.proposal.scale = 1, 
-                    tau.proposal.scale = 3, tau.prior.shape = 1, tau.prior.scale = 1,
-                    sigma.prior.shape = 1, sigma.prior.scale = 2 / 10^7, asis = TRUE, micro = 3,
-                    sample.size = 100, warmingup.size = 50)
+  output <- bayesian(data_lcA = lcA, data_lcB = lcB, 
+                     data.flux = FALSE, theta.ini = c(0, 0.01, 200), 
+                     delta.ini = 50, delta.uniform.range = c(0, 100), 
+                     delta.proposal.scale = 1, 
+                     tau.proposal.scale = 3, 
+                     tau.prior.shape = 1, tau.prior.scale = 1,
+                     sigma.prior.shape = 1, sigma.prior.scale = 2 / 10^7, 
+                     asis = TRUE, micro = 3,
+                     sample.size = 100, warmingup.size = 50)
 
   names(output)
   # hist(output$delta)
@@ -95,20 +115,23 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
 
   ###### The entire profile likelihood values on the grid of values of the time delay.
 
-  # Cubic microlensing model
-  ti1 <- simple[, 1]
-  ti2 <- simple[, 1]^2
-  ti3 <- simple[, 1]^3
-  ss <- lm(simple[, 4] - simple[, 2]~ ti1 + ti2 + ti3)
 
-  initial <- c(mean(simple[, 2]), log(0.01), log(200), ss$coefficients)
+  # Cubic microlensing model
+  ti1 <- lcB[, 1]
+  ti2 <- lcB[, 1]^2
+  ti3 <- lcB[, 1]^3
+  ss <- lm(lcB[, 2] - mean(lcA[, 2]) ~ ti1 + ti2 + ti3)
+
+  initial <- c(mean(lcA[, 2]), log(0.01), log(200), ss$coefficients)
   delta.uniform.range <- c(0, 100)
   grid <- seq(0, 100, by = 0.1) 
-  # grid interval "by = 0.1" is recommended for accuracy.
+  # grid interval "by = 0.1" is recommended for accuracy,
+  # but users can set a finer grid of values of the time delay.
 
   ###  Running the following codes takes more time than CRAN policy
   ###  Please type the following lines without "#" to run the function and to see the results
-  #  logprof <- entirelogprofilelikelihood(data = simple, grid = grid, 
+
+  #  logprof <- entirelogprofilelikelihood(data_lcA = lcA, data_lcB = lcB, grid = grid, 
   #                                        initial = initial, data.flux = FALSE, 
   #                                        delta.uniform.range = delta.uniform.range, micro = 3)
 
@@ -122,7 +145,12 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
 
   ### Argument description
 
-  # data: The data set   
+  # data_lcA: The data set (n by 3 matrix) for light curve A 
+  # (1st column: observation times, 2nd column: values of fluxes or magnitudes,
+  #  3rd column: measurement errors)
+  # data_lcB: The data set (w by 3 matrix) for light curve B 
+  # (1st column: observation times, 2nd column: values of fluxes or magnitudes,
+  #  3rd column: measurement errors)
   # grid: the vector of grid values of the time delay 
   #       on which the log profile likelihood values are calculated.
   # initial: The initial values of the other model parameters (mu, log(sigma), log(tau), beta)

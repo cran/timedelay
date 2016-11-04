@@ -2,10 +2,10 @@
 \alias{bayesian}
 \title{Estimating the time delay via the Bayesian method}
 \description{
-  \code{bayesian} produces posterior samples of all the model parameters one of which is the time delay. This function  has options for three MCMC techniques, ancillarity-sufficiency interweaving strategy (ASIS), adaptive MCMC, and tempered transition, to improve the convergence rate of the MCMC and to handle the multimodality of the time delay.
+  \code{bayesian} produces posterior samples of all the model parameters one of which is the time delay. This function has options for two MCMC techniques, ancillarity-sufficiency interweaving strategy (ASIS) and adaptive MCMC, to improve the convergence rate of the MCMC.
 }
 
-\usage{bayesian(data, data.flux, theta.ini, 
+\usage{bayesian(data_lcA, data_lcB, data.flux, theta.ini, 
    delta.ini, delta.uniform.range, delta.proposal.scale, 
    tau.proposal.scale, tau.prior.shape, tau.prior.scale,
    sigma.prior.shape, sigma.prior.scale, asis = TRUE, micro,
@@ -14,8 +14,11 @@
    sample.size, warmingup.size)}
 
 \arguments{
-  \item{data}{
-    A (\emph{n} by 1) matrix; the first column has n observation times, the second column has n flux (or magnitude) values of light A, the third column has n measurement errors of light A, the fourth column has n flux (or magnitude) values of light B, and the fifth column has n measurement errors of light B.
+  \item{data_lcA}{
+    A (\emph{n} by 3) matrix; the first column has n observation times of light curve A, the second column has n flux (or magnitude) values of light curve A, the third column has n measurement errors of light curve A.
+  }
+  \item{data_lcB}{
+    A (\emph{w} by 3) matrix; the first column has w observation times of light curve B, the second column has w flux (or magnitude) values of light curve B, the third column has w measurement errors of light curve B.
   }
   \item{data.flux}{
     "True" if data are recorded on flux scale or "FALSE" if data are on magnitude scale.  
@@ -93,7 +96,7 @@
 }
 
 \references{
-    Hyungsuk Tak, Kaisey Mandel, David A. van Dyk, Vinay L. Kashyap, Xiao-Li Meng, and Aneta Siemiginowska (in progress). Bayesian and Profile Likelihood Approaches to Time Delay Estimation for Stochastic Time Series of Gravitationally Lensed Quasars
+    Hyungsuk Tak, Kaisey Mandel, David A. van Dyk, Vinay L. Kashyap, Xiao-Li Meng, and Aneta Siemiginowska (2016+). "Bayesian Estimates of Astronomical Time Delays between Gravitationally Lensed Stochastic Light Curves," tentatively accepted in Annals of Applied Statistics (ArXiv 1602.01462).
 }
 
 \author{
@@ -103,26 +106,47 @@
 
   # Loading datasets
   data(simple)
+
+  # A typical quasar data set  
   head(simple)
   library(mnormt)
+
+  # Subset (data for image A) of the typical quasar data set
+  lcA <- simple[, 1 : 3]
+
+  # Another subset (data for image B) of the typical quasar data set
+  # The observation times for image B are not necessarily the same as those for image A
+  lcB <- simple[, c(1, 4, 5)]
+
+  # The two subsets do not need to have the same number of observations
+  # For example, here we add one more observation time for image B
+  lcB <- rbind(lcB, c(290, 1.86, 0.006))
+
+  dim(lcA)
+  dim(lcB)
 
   ###############################################
   # Time delay estimation via Bayesian approach #
   ###############################################
 
   # Cubic microlensing model (m = 3)
-  output = bayesian(dat = simple, data.flux = FALSE, theta.ini = c(0, 0.03, 100), 
+  output = bayesian(data_lcA = lcA, data_lcB = lcB, 
+                    data.flux = FALSE, theta.ini = c(0, 0.01, 200), 
                     delta.ini = 50, delta.uniform.range = c(0, 100), 
                     delta.proposal.scale = 1, 
-                    tau.proposal.scale = 3, tau.prior.shape = 1, tau.prior.scale = 1,
-                    sigma.prior.shape = 1, sigma.prior.scale = 2 / 10^7, asis = TRUE, micro = 3,
+                    tau.proposal.scale = 3, 
+                    tau.prior.shape = 1, tau.prior.scale = 1,
+                    sigma.prior.shape = 1, sigma.prior.scale = 2 / 10^7, 
+                    asis = TRUE, micro = 3,
                     sample.size = 100, warmingup.size = 50)
 
   names(output)
 
-  # hist(output$delta)
+  # hist(output$delta, 20)
   # plot(output$delta, type = "l")
   # acf(output$delta)
+  # output$delta.accept
+  # output$tau.accept
 
 }
 

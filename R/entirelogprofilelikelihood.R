@@ -1,8 +1,11 @@
-### log likelihood function of all the model parameters
-logpostDelta <- function(delta, data, theta, c, log, unif, micro) {
 
-  time <- data[, 1]
-  leng.time <- length(time)
+### log likelihood function of all the model parameters
+logpostDelta <- function(delta, data_lcA, data_lcB, theta, c, log, unif, micro) {
+
+  time1 <- data_lcA[, 1]
+  time2 <- data_lcB[, 1]
+  leng.time1 <- length(time1)
+  leng.time2 <- length(time2)
 
   if (delta < unif[1] | delta > unif[2]) {
 
@@ -14,10 +17,10 @@ logpostDelta <- function(delta, data, theta, c, log, unif, micro) {
 
   } else {
 
-    lcA <- data[, 2]
-    se.lcA <- data[, 3]
-    lcB <- data[, 4]
-    se.lcB <- data[, 5]
+    lcA <- data_lcA[, 2]
+    se.lcA <- data_lcA[, 3]
+    lcB <- data_lcB[, 2]
+    se.lcB <- data_lcB[, 3]
 
     if (log == TRUE) {
       # transform into magnitude scale 
@@ -32,27 +35,26 @@ logpostDelta <- function(delta, data, theta, c, log, unif, micro) {
     tau <- theta[3]
 
     # sorting time given delta
-    time.d <- time - delta
-    time.temp <- c(time, time.d)
+    time.d <- time2 - delta
+    time.temp <- c(time1, time.d)
     ord <- order(time.temp)
     time.comb <- time.temp[ord]
     leng.time.comb <- length(time.comb)
 
     # microlensing  
     if (micro == 0) {
-      mat.temp <- matrix(c(rep(1, leng.time)), ncol = 1)
+      mat.temp <- matrix(c(rep(1, leng.time2)), ncol = 1)
     } else if (micro == 1) {
-      mat.temp <- matrix(c(rep(1, leng.time), time.d), ncol = 2)
+      mat.temp <- matrix(c(rep(1, leng.time2), time.d), ncol = 2)
     } else if (micro == 2) {
-      mat.temp <- matrix(c(rep(1, leng.time), time.d, time.d^2), ncol = 3)
+      mat.temp <- matrix(c(rep(1, leng.time2), time.d, time.d^2), ncol = 3)
     } else if (micro == 3) {
-      mat.temp <- matrix(c(rep(1, leng.time), time.d, time.d^2, time.d^3), ncol = 4)
+      mat.temp <- matrix(c(rep(1, leng.time2), time.d, time.d^2, time.d^3), 
+                         ncol = 4)
     }
 
     c.pred <- mat.temp %*% c
 
-    # indicator taking on 1 for X(t - delta) and 0 for X(t)
-    ind <- c(rep(0, leng.time), rep(1, leng.time))[ord]
 
     lc.temp <- c(lcA, lcB - c.pred)
     lc.comb <- lc.temp[ord]
@@ -65,10 +67,10 @@ logpostDelta <- function(delta, data, theta, c, log, unif, micro) {
       x.star.i <- lc.comb - mu
 
       # omega.i, i = 1, 2, ..., 2n to be saved
-      omega.i <- rep(NA, length(time.comb))
+      omega.i <- rep(NA, leng.time.comb)
 
       # x.hat.i, i = 1, 2, ..., 2n to be saved
-      x.hat.i <- rep(NA, length(time.comb))
+      x.hat.i <- rep(NA, leng.time.comb)
 
       # a.i, i = 2, ..., 2n
       a.i <- exp( -diff(time.comb) / tau)
@@ -84,16 +86,18 @@ logpostDelta <- function(delta, data, theta, c, log, unif, micro) {
 
       # x.hat.i, i = 1, 2, ..., 2n
       x.hat.i[1] <- 0
-      for (k in 2 : length(time.comb)) {
+      for (k in 2 : leng.time.comb) {
         x.hat.i[k] <- a.i[k - 1] * (x.hat.i[k - 1] +
-                                    omega.i[k - 1] / (se.lc.comb[k - 1]^2 + omega.i[k - 1]) * 
-                                    (x.star.i[k - 1] - x.hat.i[k - 1]))                  
+                          omega.i[k - 1] / (se.lc.comb[k - 1]^2 + omega.i[k - 1]) * 
+                          (x.star.i[k - 1] - x.hat.i[k - 1]))                  
       } 
 
       # log-likelihood
-      sum(dnorm(x.star.i, mean = x.hat.i, sd = sqrt(omega.i + se.lc.comb^2), log = TRUE))
+      sum(dnorm(x.star.i, mean = x.hat.i, sd = sqrt(omega.i + se.lc.comb^2), 
+                log = TRUE))
 
     } else {
+
       # x.star.i, i = 1, 2, ..., 2n
       x <- lc.comb - mu
 
@@ -113,8 +117,8 @@ logpostDelta <- function(delta, data, theta, c, log, unif, micro) {
 
       for (k in 2 : leng.time.comb) {
         B[k] <- se.lc.comb[k]^2 / ( se.lc.comb[k]^2 + 
-                                    a.i[k - 1]^2 * (1 - B[k - 1]) * se.lc.comb[k - 1]^2 +
-                                    var0 * (1 - a.i[k - 1]^2) ) 
+                      a.i[k - 1]^2 * (1 - B[k - 1]) * se.lc.comb[k - 1]^2 +
+                      var0 * (1 - a.i[k - 1]^2) ) 
       }  
   
       # x.hat.i, i = 1, 2, ..., 2n
@@ -130,6 +134,7 @@ logpostDelta <- function(delta, data, theta, c, log, unif, micro) {
 
       # log-likelihood
       sum(dnorm(x, mean = mu.star.i, sd = sqrt(var.star.i), log = TRUE))
+
     }  # end of if (all(se.lc.comb == 0)) 
   }  # end of if (delta < unif[1] | delta > unif[2])
 }  # end of function
@@ -137,7 +142,9 @@ logpostDelta <- function(delta, data, theta, c, log, unif, micro) {
 
 
 ### entire log profile-likelihood curve
-entirelogprofilelikelihood <- function(data, grid, initial, data.flux, delta.uniform.range, micro) {
+entirelogprofilelikelihood <- function(data_lcA, data_lcB, grid, 
+                                       initial, data.flux, 
+                                       delta.uniform.range, micro) {
 
   res.save <- rep(NA, length(grid))
 
@@ -146,10 +153,13 @@ entirelogprofilelikelihood <- function(data, grid, initial, data.flux, delta.uni
     delta.temp <- grid[i]
 
     optim_delta <- function(th) {
-      theta <- th[1 : 3]
+      mu <- th[1]
+      sigma <- exp(th[2])
+      tau <- exp(th[3])
       c <- th[4 : (micro + 4)]
-      logpostDelta(delta.temp, data, theta, c, log = data.flux, 
-                   unif = delta.uniform.range, micro) 
+      logpostDelta(delta = delta.temp, data_lcA = data_lcA, data_lcB = data_lcB,
+                   theta = c(mu, sigma, tau), c = c, log = data.flux, 
+                   unif = delta.uniform.range, micro = micro) 
     }
 
     res.temp <- optim(initial, optim_delta, control = list(fnscale = -1), 

@@ -1,12 +1,15 @@
 ### posterior samples of O-U parameters (mu, sigma, and tau)
 
-postTheta <- function (data, X, delta, previous.theta, tau.jump, 
+postTheta <- function (data_lcA, data_lcB, X, delta, previous.theta, tau.jump, 
                         tau.thresh, tau.prior.a, tau.prior.b, sigma.prior.a, sigma.prior.b) {
 
-  time <- data[, 1]
-  leng.time <- length(time)
-  time.d <- time - delta
-  time.temp <- c(time, time.d)
+  time1 <- data_lcA[, 1]
+  time2 <- data_lcB[, 1]
+  leng.time1 <- length(time1)
+  leng.time2 <- length(time2)
+
+  time.d <- time2 - delta
+  time.temp <- c(time1, time.d)
   ord <- order(time.temp)
   time.comb <- time.temp[ord]
   time.diff <- diff(time.comb)
@@ -32,12 +35,14 @@ postTheta <- function (data, X, delta, previous.theta, tau.jump,
   sigma <- sqrt( ( sigma.prior.b + (X[1] - mu)^2 / tau +  
                    sum( ( X[-1] - a.i * X[-leng.X] - mu * (1 - a.i) )^2 / 
                         (1 - a.i^2) ) / tau ) / 
-                 rgamma(1, shape = length(time) + sigma.prior.a, scale = 1) )
+                 rgamma(1, shape = (leng.time1 + leng.time2) / 2 + 
+                                   sigma.prior.a, scale = 1) )
  
   # updating tau
   log.post.tau <- function(t) {
     a.i.post <- exp( - time.diff / t )
-    - (length(time) + 1 + tau.prior.a) * log(t) - 0.5 * sum( log(1 - a.i.post^2) ) - 
+    - ( (leng.time1 + leng.time2) / 2 + 1 + tau.prior.a) * log(t) - 
+    0.5 * sum( log(1 - a.i.post^2) ) - 
     ( tau.prior.b  + (X[1] - mu)^2 / sigma^2 +
       sum( ( X[-1] - a.i.post * X[-leng.X] - mu * (1 - a.i.post) )^2 / 
            (1 - a.i.post^2) ) / sigma^2 ) / t
@@ -60,10 +65,12 @@ postTheta <- function (data, X, delta, previous.theta, tau.jump,
 
 
 ### log likelihood function of all the model parameters
-logpostDelta <- function(delta, data, theta, c, log, unif, micro) {
+logpostDelta <- function(delta, data_lcA, data_lcB, theta, c, log, unif, micro) {
 
-  time <- data[, 1]
-  leng.time <- length(time)
+  time1 <- data_lcA[, 1]
+  time2 <- data_lcB[, 1]
+  leng.time1 <- length(time1)
+  leng.time2 <- length(time2)
 
   if (delta < unif[1] | delta > unif[2]) {
 
@@ -75,10 +82,10 @@ logpostDelta <- function(delta, data, theta, c, log, unif, micro) {
 
   } else {
 
-    lcA <- data[, 2]
-    se.lcA <- data[, 3]
-    lcB <- data[, 4]
-    se.lcB <- data[, 5]
+    lcA <- data_lcA[, 2]
+    se.lcA <- data_lcA[, 3]
+    lcB <- data_lcB[, 2]
+    se.lcB <- data_lcB[, 3]
 
     if (log == TRUE) {
       # transform into magnitude scale 
@@ -93,27 +100,26 @@ logpostDelta <- function(delta, data, theta, c, log, unif, micro) {
     tau <- theta[3]
 
     # sorting time given delta
-    time.d <- time - delta
-    time.temp <- c(time, time.d)
+    time.d <- time2 - delta
+    time.temp <- c(time1, time.d)
     ord <- order(time.temp)
     time.comb <- time.temp[ord]
     leng.time.comb <- length(time.comb)
 
     # microlensing  
     if (micro == 0) {
-      mat.temp <- matrix(c(rep(1, leng.time)), ncol = 1)
+      mat.temp <- matrix(c(rep(1, leng.time2)), ncol = 1)
     } else if (micro == 1) {
-      mat.temp <- matrix(c(rep(1, leng.time), time.d), ncol = 2)
+      mat.temp <- matrix(c(rep(1, leng.time2), time.d), ncol = 2)
     } else if (micro == 2) {
-      mat.temp <- matrix(c(rep(1, leng.time), time.d, time.d^2), ncol = 3)
+      mat.temp <- matrix(c(rep(1, leng.time2), time.d, time.d^2), ncol = 3)
     } else if (micro == 3) {
-      mat.temp <- matrix(c(rep(1, leng.time), time.d, time.d^2, time.d^3), ncol = 4)
+      mat.temp <- matrix(c(rep(1, leng.time2), time.d, time.d^2, time.d^3), 
+                         ncol = 4)
     }
 
     c.pred <- mat.temp %*% c
 
-    # indicator taking on 1 for X(t - delta) and 0 for X(t)
-    ind <- c(rep(0, leng.time), rep(1, leng.time))[ord]
 
     lc.temp <- c(lcA, lcB - c.pred)
     lc.comb <- lc.temp[ord]
@@ -126,10 +132,10 @@ logpostDelta <- function(delta, data, theta, c, log, unif, micro) {
       x.star.i <- lc.comb - mu
 
       # omega.i, i = 1, 2, ..., 2n to be saved
-      omega.i <- rep(NA, length(time.comb))
+      omega.i <- rep(NA, leng.time.comb)
 
       # x.hat.i, i = 1, 2, ..., 2n to be saved
-      x.hat.i <- rep(NA, length(time.comb))
+      x.hat.i <- rep(NA, leng.time.comb)
 
       # a.i, i = 2, ..., 2n
       a.i <- exp( -diff(time.comb) / tau)
@@ -145,16 +151,18 @@ logpostDelta <- function(delta, data, theta, c, log, unif, micro) {
 
       # x.hat.i, i = 1, 2, ..., 2n
       x.hat.i[1] <- 0
-      for (k in 2 : length(time.comb)) {
+      for (k in 2 : leng.time.comb) {
         x.hat.i[k] <- a.i[k - 1] * (x.hat.i[k - 1] +
-                                    omega.i[k - 1] / (se.lc.comb[k - 1]^2 + omega.i[k - 1]) * 
-                                    (x.star.i[k - 1] - x.hat.i[k - 1]))                  
+                          omega.i[k - 1] / (se.lc.comb[k - 1]^2 + omega.i[k - 1]) * 
+                          (x.star.i[k - 1] - x.hat.i[k - 1]))                  
       } 
 
       # log-likelihood
-      sum(dnorm(x.star.i, mean = x.hat.i, sd = sqrt(omega.i + se.lc.comb^2), log = TRUE))
+      sum(dnorm(x.star.i, mean = x.hat.i, sd = sqrt(omega.i + se.lc.comb^2), 
+                log = TRUE))
 
     } else {
+
       # x.star.i, i = 1, 2, ..., 2n
       x <- lc.comb - mu
 
@@ -174,8 +182,8 @@ logpostDelta <- function(delta, data, theta, c, log, unif, micro) {
 
       for (k in 2 : leng.time.comb) {
         B[k] <- se.lc.comb[k]^2 / ( se.lc.comb[k]^2 + 
-                                    a.i[k - 1]^2 * (1 - B[k - 1]) * se.lc.comb[k - 1]^2 +
-                                    var0 * (1 - a.i[k - 1]^2) ) 
+                      a.i[k - 1]^2 * (1 - B[k - 1]) * se.lc.comb[k - 1]^2 +
+                      var0 * (1 - a.i[k - 1]^2) ) 
       }  
   
       # x.hat.i, i = 1, 2, ..., 2n
@@ -191,6 +199,7 @@ logpostDelta <- function(delta, data, theta, c, log, unif, micro) {
 
       # log-likelihood
       sum(dnorm(x, mean = mu.star.i, sd = sqrt(var.star.i), log = TRUE))
+
     }  # end of if (all(se.lc.comb == 0)) 
   }  # end of if (delta < unif[1] | delta > unif[2])
 }  # end of function
@@ -198,18 +207,20 @@ logpostDelta <- function(delta, data, theta, c, log, unif, micro) {
 
 
 ### posterior samples of the latent true magnitudes
-postX <- function(data, X, theta, delta, c, log, micro) {
+postX <- function(data_lcA, data_lcB, X, theta, delta, c, log, micro) {
 
-  time <- data[, 1]
-  leng.time <- length(time)
+  time1 <- data_lcA[, 1]
+  time2 <- data_lcB[, 1]
+  leng.time1 <- length(time1)
+  leng.time2 <- length(time2)
 
-  lcA <- data[, 2]
-  se.lcA <- data[, 3]
-  lcB <- data[, 4]
-  se.lcB <- data[, 5]
+  lcA <- data_lcA[, 2]
+  se.lcA <- data_lcA[, 3]
+  lcB <- data_lcB[, 2]
+  se.lcB <- data_lcB[, 3]
 
   if (log == TRUE) {
-    # transform into log scale
+    # transform into magnitude scale 
     se.lcA <- se.lcA * 2.5 / lcA / log(10)
     lcA <- -2.5 * log(lcA, base = 10)
     se.lcB <- se.lcB * 2.5 / lcB / log(10)
@@ -221,23 +232,21 @@ postX <- function(data, X, theta, delta, c, log, micro) {
   tau <- theta[3]
 
   # sorting time given delta
-  time.d <- time - delta
-  time.temp <- c(time, time.d)
+  time.d <- time2 - delta
+  time.temp <- c(time1, time.d)
   ord <- order(time.temp)
   time.comb <- time.temp[ord]
   leng.time.comb <- length(time.comb)
   
-  # indicator taking on 1 for X(t - delta) and 0 for X(t)
-  ind <- c(rep(0, leng.time), rep(1, leng.time))[ord]
-
   if (micro == 0) {
-    mat.temp <- matrix(c(rep(1, leng.time)), ncol = 1)
+    mat.temp <- matrix(c(rep(1, leng.time2)), ncol = 1)
   } else if (micro == 1) {
-    mat.temp <- matrix(c(rep(1, leng.time), time.d), ncol = 2)
+    mat.temp <- matrix(c(rep(1, leng.time2), time.d), ncol = 2)
   } else if (micro == 2) {
-    mat.temp <- matrix(c(rep(1, leng.time), time.d, time.d^2), ncol = 3)
+    mat.temp <- matrix(c(rep(1, leng.time2), time.d, time.d^2), ncol = 3)
   } else if (micro == 3) {
-    mat.temp <- matrix(c(rep(1, leng.time), time.d, time.d^2, time.d^3), ncol = 4)
+    mat.temp <- matrix(c(rep(1, leng.time2), time.d, time.d^2, time.d^3), 
+                       ncol = 4)
   }
 
   c.pred <- mat.temp %*% c
@@ -273,20 +282,24 @@ postX <- function(data, X, theta, delta, c, log, micro) {
 
   for (k in 2 : (leng.time.comb - 1)) {
     B[k] <- se.lc.comb[k]^2 / 
-              ( se.lc.comb[k]^2 + var0 * (1 - a.i[k - 1]^2) * (1 - a.i[k]^2) / (1 - (a.i[k - 1] * a.i[k])^2) )
+              ( se.lc.comb[k]^2 + var0 * (1 - a.i[k - 1]^2) * (1 - a.i[k]^2) / 
+              (1 - (a.i[k - 1] * a.i[k])^2) )
     mu.i[k] <- (1 - B[k]) * x[k] + 
-               B[k] * (a.i[k] * (1 - a.i[k - 1]^2) * X[k + 1] + a.i[k - 1] * (1 - a.i[k]^2) * X[k - 1]) / 
+               B[k] * (a.i[k] * (1 - a.i[k - 1]^2) * X[k + 1] + 
+               a.i[k - 1] * (1 - a.i[k]^2) * X[k - 1]) / 
                       (1 - (a.i[k - 1] * a.i[k])^2)
     X[k] <- rnorm(1, mean = mu.i[k], sd = sqrt(se.lc.comb[k]^2 * (1 - B[k])))
   }
 
   B[leng.time.comb] <- se.lc.comb[leng.time.comb]^2 / 
-                       (se.lc.comb[leng.time.comb]^2 + var0 * (1 - a.i[leng.time.comb - 1]^2))
+                       (se.lc.comb[leng.time.comb]^2 + 
+                        var0 * (1 - a.i[leng.time.comb - 1]^2))
   mu.i[leng.time.comb] <- (1 - B[leng.time.comb]) * x[leng.time.comb] + 
-                          B[leng.time.comb] * a.i[leng.time.comb - 1] * X[leng.time.comb - 1]
+                          B[leng.time.comb] * a.i[leng.time.comb - 1] * 
+                          X[leng.time.comb - 1]
   X[leng.time.comb] <- rnorm(1, mean = mu.i[leng.time.comb], 
-                                sd = sqrt(se.lc.comb[leng.time.comb]^2 * (1 - B[leng.time.comb])))
-
+                                sd = sqrt(se.lc.comb[leng.time.comb]^2 * 
+                                          (1 - B[leng.time.comb])))
   X + mu
 
 }     
@@ -294,7 +307,7 @@ postX <- function(data, X, theta, delta, c, log, micro) {
 
 
 ### Bayesian approach to time delay estimation
-bayesian <- function(data, data.flux, 
+bayesian <- function(data_lcA, data_lcB, data.flux, 
                      theta.ini, 
                      delta.ini, delta.uniform.range, delta.proposal.scale, 
                      tau.proposal.scale, tau.prior.shape, tau.prior.scale, 
@@ -306,7 +319,7 @@ bayesian <- function(data, data.flux,
                      sample.size = 50, warmingup.size = 50) {
 
   if (asis == TRUE & adaptive.delta == TRUE & adaptive.tau == TRUE) {
-    print("Options for the Bayesian method: ASIS for beta, Adaptive MCMC for Delta, and Adaptive MCMC for tau")
+    print("Options for the Bayesian method: ASIS for beta, Adaptive MCMC for Delta and tau")
   } else if (asis == TRUE & adaptive.delta == TRUE & adaptive.tau == FALSE) {
     print("Options for the Bayesian method: ASIS for beta and Adaptive MCMC for Delta")
   } else if (asis == TRUE & adaptive.delta == FALSE & adaptive.tau == TRUE) {
@@ -327,16 +340,19 @@ bayesian <- function(data, data.flux,
 
   total.sample.size <- sample.size + warmingup.size
 
-  time <- data[, 1]
-  leng.time <- length(time)
+  time1 <- data_lcA[, 1]
+  time2 <- data_lcB[, 1]
+  leng.time1 <- length(time1)
+  leng.time2 <- length(time2)
+  leng.time.comb <- leng.time1 + leng.time2
 
-  lcA <- data[, 2]
-  se.lcA <- data[, 3]
-  lcB <- data[, 4]
-  se.lcB <- data[, 5]
+  lcA <- data_lcA[, 2]
+  se.lcA <- data_lcA[, 3]
+  lcB <- data_lcB[, 2]
+  se.lcB <- data_lcB[, 3]
 
   if (data.flux == TRUE) {
-    # transform into log scale
+    # transform into magnitude scale 
     se.lcA <- se.lcA * 2.5 / lcA / log(10)
     lcA <- -2.5 * log(lcA, base = 10)
     se.lcB <- se.lcB * 2.5 / lcB / log(10)
@@ -349,8 +365,8 @@ bayesian <- function(data, data.flux,
   tau.t <- theta.ini[3]  #tau ini
 
   # sorting time given delta
-  time.d <- time - delta.t
-  time.temp <- c(time, time.d)
+  time.d <- time2 - delta.t
+  time.temp <- c(time1, time.d)
   ord <- order(time.temp)
   ti2 <- time.d^2
   ti3 <- time.d^3
@@ -391,24 +407,26 @@ bayesian <- function(data, data.flux,
 
     # delta and X(t) update
     delta.p <- delta.t + delta.proposal.scale.adapt * delta.jumps[i]
-    l.metrop <- logpostDelta(delta.p, data, c(mu.t, sigma.t, tau.t), c.t, 
+    l.metrop <- logpostDelta(delta.p, data_lcA = data_lcA, 
+                             data_lcB = data_lcB, c(mu.t, sigma.t, tau.t), c.t, 
                              log = data.flux, unif = delta.uniform.range, micro) -
-	            logpostDelta(delta.t, data, c(mu.t, sigma.t, tau.t), c.t, 
+	            logpostDelta(delta.t, data_lcA = data_lcA, 
+                             data_lcB = data_lcB, c(mu.t, sigma.t, tau.t), c.t, 
                              log = data.flux, unif = delta.uniform.range, micro)
 
     if (l.metrop > delta.thresh[i]) { 
         delta.t <- delta.p 
         delta.accept[i] <- 1
-        X.t <- postX(data, X.t, theta = c(mu.t, sigma.t, tau.t), 
+        X.t <- postX(data_lcA, data_lcB, X.t, theta = c(mu.t, sigma.t, tau.t), 
                       delta = delta.t, c = c.t, log = data.flux, micro)
     }
 	
     delta.out[i] <- delta.t  
 
-    time.d <- time - delta.t
-    time.temp <- c(time, time.d)
+    time.d <- time2 - delta.t
+    time.temp <- c(time1, time.d)
     ord <- order(time.temp)
-    ind <- c(rep(0, leng.time), rep(1, leng.time))[ord]
+    ind <- c(rep(0, leng.time1), rep(1, leng.time2))[ord]
     leng.X <- length(X.t)
     lc.comb <- c(lcA, lcB)[ord]
     se.lc.comb <- c(se.lcA, se.lcB)[ord]
@@ -416,13 +434,13 @@ bayesian <- function(data, data.flux,
 
     # c update
     if (micro == 0) {
-      T.mat <- matrix(c(rep(1, leng.time)), ncol = 1)
+      T.mat <- matrix(c(rep(1, leng.time2)), ncol = 1)
     } else if (micro == 1) {
-      T.mat <- matrix(c(rep(1, leng.time), time.d), ncol = 2)
+      T.mat <- matrix(c(rep(1, leng.time2), time.d), ncol = 2)
     } else if (micro == 2) {
-      T.mat <- matrix(c(rep(1, leng.time), time.d, time.d^2), ncol = 3)
+      T.mat <- matrix(c(rep(1, leng.time2), time.d, time.d^2), ncol = 3)
     } else if (micro == 3) {
-      T.mat <- matrix(c(rep(1, leng.time), time.d, time.d^2, time.d^3), ncol = 4)
+      T.mat <- matrix(c(rep(1, leng.time2), time.d, time.d^2, time.d^3), ncol = 4)
     }
 
     V.inv.mat <- diag(1 / se.lcB^2)
@@ -437,13 +455,15 @@ bayesian <- function(data, data.flux,
     if (asis == TRUE) {
 
       if (micro == 0) {
-        T.mat <- matrix(c(rep(1, 2 * leng.time)), ncol = 1) 
+        T.mat <- matrix(c(rep(1, leng.time.comb)), ncol = 1) 
       } else if (micro == 1) {
-        T.mat <- matrix(c(rep(1, 2 * leng.time), time.sort), ncol = 2) 
+        T.mat <- matrix(c(rep(1, leng.time.comb), time.sort), ncol = 2) 
       } else if (micro == 2) {
-        T.mat <- matrix(c(rep(1, 2 * leng.time), time.sort, time.sort^2), ncol = 3) 
+        T.mat <- matrix(c(rep(1, leng.time.comb), time.sort, time.sort^2), 
+                        ncol = 3) 
       } else if (micro == 3) {
-        T.mat <- matrix(c(rep(1, 2 * leng.time), time.sort, time.sort^2, time.sort^3), ncol = 4) 
+        T.mat <- matrix(c(rep(1, leng.time.comb), time.sort, time.sort^2, 
+                        time.sort^3), ncol = 4) 
       }
 
       K.t <- X.t + T.mat %*% c.t * ind
@@ -454,7 +474,8 @@ bayesian <- function(data, data.flux,
 
       y.c <- c(K.t.cent[1], K.t.cent[-1] - a.i * K.t.cent[-leng.X])
       if (micro == 0) {
-        X.c <- c(ind[1] * T.mat[1, ], ind[-1] * T.mat[-1, ] - a.i * ind[-leng.X] * T.mat[-leng.X, ])
+        X.c <- c(ind[1] * T.mat[1, ], ind[-1] * T.mat[-1, ] - 
+                          a.i * ind[-leng.X] * T.mat[-leng.X, ])
       } else {
         X.c <- rbind(ind[1] * T.mat[1, ], 
                      ind[-1] * T.mat[-1, ] - a.i * ind[-leng.X] * T.mat[-leng.X, ])
@@ -471,11 +492,14 @@ bayesian <- function(data, data.flux,
 
     # theta update
     tau.jump.adapt <- tau.proposal.scale.adapt * tau.jumps[i]
-    theta.update <- postTheta(data, X = X.t, delta = delta.t, 
+    theta.update <- postTheta(data_lcA = data_lcA, data_lcB = data_lcB, X = X.t, 
+                              delta = delta.t, 
                                previous.theta = c(mu.t, sigma.t, tau.t), 
                                tau.jump = tau.jump.adapt, tau.thresh = tau.thresh[i],
-                               tau.prior.a = tau.prior.shape, tau.prior.b = tau.prior.scale, 
-                               sigma.prior.a =  sigma.prior.shape, sigma.prior.b = sigma.prior.scale)
+                               tau.prior.a = tau.prior.shape, 
+                               tau.prior.b = tau.prior.scale, 
+                               sigma.prior.a =  sigma.prior.shape, 
+                               sigma.prior.b = sigma.prior.scale)
 
     if (theta.update[3] != tau.t) {
       tau.accept[i] <- 1
