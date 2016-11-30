@@ -390,6 +390,7 @@ bayesian <- function(data_lcA, data_lcB, data.flux,
   tau.out <- rep(NA, total.sample.size)
   delta.out <- rep(NA, total.sample.size)
   c.out <- matrix(NA, nrow = total.sample.size, ncol = (micro + 1))
+  X.out <- matrix(NA, nrow = total.sample.size, ncol = leng.time.comb)
 
   tau.accept <- rep(0, total.sample.size)
   delta.accept <- rep(0, total.sample.size)
@@ -489,6 +490,7 @@ bayesian <- function(data_lcA, data_lcB, data.flux,
       X.t <- K.t - T.mat %*% c.t * ind    # synchronization
 
     }
+    X.out[i, ] <- X.t
 
     # theta update
     tau.jump.adapt <- tau.proposal.scale.adapt * tau.jumps[i]
@@ -540,7 +542,8 @@ bayesian <- function(data_lcA, data_lcB, data.flux,
   print(paste("Ending time:", Sys.time()))
 
   out <- list(delta = delta.out[-c(1 : warmingup.size)],
-              beta = c.out[-c(1 : warmingup.size)],
+              beta = c.out[-c(1 : warmingup.size), ],
+              X = X.out[-c(1 : warmingup.size), ],
               mu = mu.out[-c(1 : warmingup.size)], 
               sigma = sigma.out[-c(1 : warmingup.size)], 
               tau = tau.out[-c(1 : warmingup.size)],

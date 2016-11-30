@@ -87,6 +87,7 @@
 \value{
   The outcome of \code{bayesian} comprises of:
   \item{delta}{Posterior samples of the time delay}
+  \item{X}{Posterior samples of the latent magnitudes}
   \item{beta}{Posterior samples of the polynomial regression coefficients, beta}
   \item{mu}{Posterior samples of the mean parameter of the O-U process, mu}
   \item{sigma}{Posterior samples of the short term variability of the O-U process, sigma}
@@ -147,6 +148,28 @@
   # acf(output$delta)
   # output$delta.accept
   # output$tau.accept
+
+  # Graphical model checking 
+  # beta.hat <- colMeans(output$beta)
+  # delta.hat <- mean(delta)
+  # time.x <- lcB[, 1] - delta.hat
+  # time.covariate <- cbind(rep(1, length(time.x)), time.x, time.x^2, time.x^3)
+  ##### this time.covariate is when micro = 3
+  ##### with micro = 0, "time.covariate <- rep(1, length(time.x))" is used.
+  # predicted <- time.covariate %*% beta.hat
+  # plot(lcA[, 1], lcA[, 2], col = 2)     
+  ##### adjust the range of the x-axis by the argument
+  ##### for example "xlim = c(-1, 2)" 
+  # points(lcB[, 1] - delta.hat, lcB[, 2] - predicted, col = 4, pch = 1)
+  # for (i in 1 : length(output$delta)) {
+  #   temp.time <- c(lcA[, 1], lcB[, 1] - output$delta[i])
+  #   points(sort(temp.time), output$X[i, ], 
+  #          col = "gray", cex = 0.5, pch = 1, lwd = 0.01)
+  # }
+  # points(lcA[, 1], lcA[, 2], cex = 0.5, pch = 0, col = 2, lwd = 1)
+  # points(lcB[, 1] - delta.hat, lcB[, 2] - predicted, 
+  #        col = 4, cex = 0.5, pch = 1, lwd = 1)
+
 
 }
 
