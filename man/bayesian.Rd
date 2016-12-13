@@ -8,20 +8,20 @@
 \usage{bayesian(data_lcA, data_lcB, data.flux, theta.ini, 
    delta.ini, delta.uniform.range, delta.proposal.scale, 
    tau.proposal.scale, tau.prior.shape, tau.prior.scale,
-   sigma.prior.shape, sigma.prior.scale, asis = TRUE, micro,
+   sigma.prior.shape, sigma.prior.scale, asis = TRUE, micro, multimodality = FALSE, 
    adaptive.freqeuncy, adaptive.delta =  TRUE, adaptive.delta.factor,
    adaptive.tau = TRUE, adaptive.tau.factor,
    sample.size, warmingup.size)}
 
 \arguments{
   \item{data_lcA}{
-    A (\emph{n} by 3) matrix; the first column has n observation times of light curve A, the second column has n flux (or magnitude) values of light curve A, the third column has n measurement errors of light curve A.
+    A (\emph{n} by 3) matrix for image A (light curve A); the first column has n observation times, the second column contains n flux (or magnitude) values, the third column includes n measurement errors.
   }
   \item{data_lcB}{
-    A (\emph{w} by 3) matrix; the first column has w observation times of light curve B, the second column has w flux (or magnitude) values of light curve B, the third column has w measurement errors of light curve B.
+    A (\emph{w} by 3) matrix for image B (light curve B); the first column has w observation times, the second column contains w flux (or magnitude) values, the third column includes w measurement errors.
   }
   \item{data.flux}{
-    "True" if data are recorded on flux scale or "FALSE" if data are on magnitude scale.  
+    "True" if data are recorded on flux scale or "FALSE" if data are on magnitude scale. If your observed time series can take on negative values, then data.flux = FALSE.
   }
   \item{theta.ini}{
     Initial values of theta = (mu, sigma, tau) for MCMC.
@@ -55,6 +55,9 @@
   }
   \item{micro}{
     It determines the order of a polynomial regression model that accounts for the difference between microlensing trends. Default is 3. When zero is assigned, the Bayesian model fits a curve-shifted model.
+  }
+  \item{multimodality}{
+    (Optional) "TRUE" if we use a repelling-attracting Metropolis algorithm for sampling Delta. When it is "TRUE" it is recommended that adaptive.delta = FALSE so that the adaptive MCMC is not used in the presence of multimodality. Default is "FALSE". 
   }
   \item{adaptive.freqeuncy}{
     (If "adaptive.delta = TRUE" or "adaptive.tau = TRUE") The adaptive MCMC is applied for every specified frequency. If it is specified as 500, the adaptive MCMC is applied to every 500th iterstion.
@@ -97,7 +100,8 @@
 }
 
 \references{
-    Hyungsuk Tak, Kaisey Mandel, David A. van Dyk, Vinay L. Kashyap, Xiao-Li Meng, and Aneta Siemiginowska (2016+). "Bayesian Estimates of Astronomical Time Delays between Gravitationally Lensed Stochastic Light Curves," tentatively accepted in Annals of Applied Statistics (ArXiv 1602.01462).
+    Hyungsuk Tak, Kaisey Mandel, David A. van Dyk, Vinay L. Kashyap, Xiao-Li Meng, and Aneta Siemiginowska (2017+). "Bayesian Estimates of Astronomical Time Delays between Gravitationally Lensed Stochastic Light Curves," tentatively accepted in Annals of Applied Statistics (ArXiv 1602.01462).
+    Hyungsuk Tak, Xiao-Li Meng, David A. van Dyk (2017+). "A Repelling-Attracting Metropolis Algorithm for Multimodality," submitted to Journal of Computational and Graphical Statistics (ArXiv 1601.05633).
 }
 
 \author{
@@ -149,26 +153,29 @@
   # output$delta.accept
   # output$tau.accept
 
+  # If multimodality exists, then please add two arguments:
+  # multimodality = TRUE, adaptive.delta = FALSE
+
   # Graphical model checking 
   # beta.hat <- colMeans(output$beta)
-  # delta.hat <- mean(delta)
+  # delta.hat <- mean(output$delta)
   # time.x <- lcB[, 1] - delta.hat
   # time.covariate <- cbind(rep(1, length(time.x)), time.x, time.x^2, time.x^3)
-  ##### this time.covariate is when micro = 3
-  ##### with micro = 0, "time.covariate <- rep(1, length(time.x))" is used.
+  ##### This time.covariate is when micro = 3
+  ##### With micro = 0, "time.covariate <- rep(1, length(time.x))" is used.
   # predicted <- time.covariate %*% beta.hat
   # plot(lcA[, 1], lcA[, 2], col = 2)     
-  ##### adjust the range of the x-axis by the argument
-  ##### for example "xlim = c(-1, 2)" 
+  ##### Adjust the range of the x-axis by the argument of plot.
+  ##### For example "xlim = c(-1, 2)" 
   # points(lcB[, 1] - delta.hat, lcB[, 2] - predicted, col = 4, pch = 1)
   # for (i in 1 : length(output$delta)) {
   #   temp.time <- c(lcA[, 1], lcB[, 1] - output$delta[i])
   #   points(sort(temp.time), output$X[i, ], 
   #          col = "gray", cex = 0.5, pch = 1, lwd = 0.01)
   # }
-  # points(lcA[, 1], lcA[, 2], cex = 0.5, pch = 0, col = 2, lwd = 1)
+  # points(lcA[, 1], lcA[, 2], pch = 0, col = 2, lwd = 1)
   # points(lcB[, 1] - delta.hat, lcB[, 2] - predicted, 
-  #        col = 4, cex = 0.5, pch = 1, lwd = 1)
+  #        col = 4, pch = 1, lwd = 1)
 
 
 }

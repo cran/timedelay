@@ -71,7 +71,19 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
 
   ### Argument description
 
+  # data_lcA: An n1 by three matrix for image A (light curve A) with 
+  #           n1 observation times in the first column,
+  #           n1 observed magnitudes (or in flux) in the second column,
+  #           n1 measurement errors for image A in the third column.
+
+  # data_lcB: An n2 by three matrix for image B (light curve B) with 
+  #           n2 observation times in the first column,
+  #           n2 observed magnitudes (or in flux) in the second column,
+  #           n2 measurement errors for image A in the third column.
+
   # data.flux: "True" if data are recorded on flux scale or "FALSE" if data are on magnitude scale.
+  # If your observed time series can take on negative values, then data.flux = FALSE.
+
   # theta.ini: Initial values of theta = (mu, sigma, tau) for MCMC.
   # delta.ini: Initial values of the time delay for MCMC.
   # delta.uniform.range: The range of the Uniform prior distribution for the time delay.
@@ -93,6 +105,10 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
 
   # asis: "TRUE" if we use the ancillarity-sufficiency interweaving strategy (ASIS) 
   #       for c (always recommended)
+  # multimodality: "TRUE" if we use the repelling-attracting Metropolis algorithm
+  #                for sampling Delta in the presence of multimodality.
+  #                Please make sure that "adaptive.delta = FALSE" so that 
+  #                adaptive MCMC for Delta is not used in the presence of multimodality.
 
   # adaptive.freqeuncy: The adaptive MCMC is applied for every specified frequency. 
   #                     If it is specified as 100, 
@@ -108,6 +124,8 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
 
   # sample.size: The number of posterior samples for each parameter
   # warmingup.size: The number of burn-ins
+
+  # Type ?bayesian for further details on graphical model checking.
 
   ################################################
   # Time delay estimation via profile likelihood #

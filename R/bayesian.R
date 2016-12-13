@@ -312,28 +312,136 @@ bayesian <- function(data_lcA, data_lcB, data.flux,
                      delta.ini, delta.uniform.range, delta.proposal.scale, 
                      tau.proposal.scale, tau.prior.shape, tau.prior.scale, 
                      sigma.prior.shape, sigma.prior.scale,                        
-                     asis = TRUE, micro, 
+                     asis = TRUE, micro, multimodality = FALSE,
                      adaptive.freqeuncy = 100,
                      adaptive.delta = TRUE, adaptive.delta.factor = 0.01,
                      adaptive.tau = TRUE, adaptive.tau.factor = 0.01,
                      sample.size = 50, warmingup.size = 50) {
 
-  if (asis == TRUE & adaptive.delta == TRUE & adaptive.tau == TRUE) {
+  if (multimodality == TRUE & asis == TRUE & adaptive.delta == TRUE & adaptive.tau == TRUE) {
+    print("Options for the Bayesian method: RAM for Delta (Please make sure that adaptive.delta = FALSE), ASIS for beta, Adaptive MCMC for Delta and tau.")
+  } else if (multimodality == TRUE & asis == TRUE & adaptive.delta == TRUE & adaptive.tau == FALSE) {
+    print("Options for the Bayesian method: RAM for Delta (Please make sure that adaptive.delta = FALSE), ASIS for beta and Adaptive MCMC for Delta.")
+  } else if (multimodality == TRUE & asis == TRUE & adaptive.delta == FALSE & adaptive.tau == TRUE) {
+    print("Options for the Bayesian method: RAM for Delta (Please make sure that adaptive.delta = FALSE), ASIS for beta and Adaptive MCMC for tau.")
+  } else if (multimodality == TRUE & asis == FALSE & adaptive.delta == TRUE & adaptive.tau == TRUE) {
+    print("Options for the Bayesian method: RAM for Delta (Please make sure that adaptive.delta = FALSE), Adaptive MCMC for Delta and tau.")
+  } else if (multimodality == TRUE & asis == TRUE & adaptive.delta == FALSE & adaptive.tau == FALSE) {
+    print("Options for the Bayesian method: RAM for Delta (Please make sure that adaptive.delta = FALSE), ASIS for beta.")
+  } else if (multimodality == TRUE & asis == FALSE & adaptive.delta == TRUE & adaptive.tau == FALSE) {
+    print("Options for the Bayesian method: RAM for Delta (Please make sure that adaptive.delta = FALSE), Adaptive MCMC for Delta.")
+  } else if (multimodality == TRUE & asis == FALSE & adaptive.delta == FALSE & adaptive.tau == TRUE) {
+    print("Options for the Bayesian method: RAM for Delta (Please make sure that adaptive.delta = FALSE), Adaptive MCMC for tau.")
+  } else if (multimodality == TRUE & asis == FALSE & adaptive.delta == FALSE & adaptive.tau == FALSE) {
+    print("Options for the Bayesian method: RAM for Delta (Please make sure that adaptive.delta = FALSE).")
+  } else if (multimodality == FALSE & asis == TRUE & adaptive.delta == TRUE & adaptive.tau == TRUE) {
     print("Options for the Bayesian method: ASIS for beta, Adaptive MCMC for Delta and tau")
-  } else if (asis == TRUE & adaptive.delta == TRUE & adaptive.tau == FALSE) {
+  } else if (multimodality == FALSE & asis == TRUE & adaptive.delta == TRUE & adaptive.tau == FALSE) {
     print("Options for the Bayesian method: ASIS for beta and Adaptive MCMC for Delta")
-  } else if (asis == TRUE & adaptive.delta == FALSE & adaptive.tau == TRUE) {
+  } else if (multimodality == FALSE & asis == TRUE & adaptive.delta == FALSE & adaptive.tau == TRUE) {
     print("Options for the Bayesian method: ASIS for beta and Adaptive MCMC for tau")
-  } else if (asis == FALSE & adaptive.delta == TRUE & adaptive.tau == TRUE) {
+  } else if (multimodality == FALSE & asis == FALSE & adaptive.delta == TRUE & adaptive.tau == TRUE) {
     print("Options for the Bayesian method:  Adaptive MCMC for Delta and tau")
-  } else if (asis == TRUE & adaptive.delta == FALSE & adaptive.tau == FALSE) {
+  } else if (multimodality == FALSE & asis == TRUE & adaptive.delta == FALSE & adaptive.tau == FALSE) {
     print("Options for the Bayesian method: ASIS for beta")
-  } else if (asis == FALSE & adaptive.delta == TRUE & adaptive.tau == FALSE) {
+  } else if (multimodality == FALSE & asis == FALSE & adaptive.delta == TRUE & adaptive.tau == FALSE) {
     print("Options for the Bayesian method:  Adaptive MCMC for Delta")
-  } else if (asis == FALSE & adaptive.delta == FALSE & adaptive.tau == TRUE) {
+  } else if (multimodality == FALSE & asis == FALSE & adaptive.delta == FALSE & adaptive.tau == TRUE) {
     print("Options for the Bayesian method:  Adaptive MCMC for tau")
-  } else if (asis == FALSE & adaptive.delta == FALSE & adaptive.tau == FALSE) {
+  } else if (multimodality == FALSE & asis == FALSE & adaptive.delta == FALSE & adaptive.tau == FALSE) {
     print("Options for the Bayesian method: None")
+  }
+
+  # target function is defined
+  ram.transition <- function(current.x, current.z, prop.scale, epsilon) {
+
+    x.c <- current.x
+    z.c <- current.z
+    x.c.log.den <- logpostDelta(delta = x.c, data_lcA = data_lcA, 
+                                data_lcB = data_lcB, theta = c(mu.t, sigma.t, tau.t),
+                                c = c.t, log = data.flux, unif = delta.uniform.range, 
+                                micro = micro)
+    z.c.log.den <- logpostDelta(delta = z.c, data_lcA = data_lcA, 
+                                data_lcB = data_lcB, theta = c(mu.t, sigma.t, tau.t),
+                                c = c.t, log = data.flux, unif = delta.uniform.range, 
+                                micro = micro)
+    accept <- 0
+
+    # downhill
+    x.p1 <- delta.uniform.range[2] + 10
+    while (x.p1 > delta.uniform.range[2] | x.p1 < delta.uniform.range[1]) {
+      x.p1 <- rnorm(1, x.c, prop.scale)
+    }
+    x.p1.log.den <- logpostDelta(delta = x.p1, data_lcA = data_lcA, 
+                                data_lcB = data_lcB, theta = c(mu.t, sigma.t, tau.t),
+                                c = c.t, log = data.flux, unif = delta.uniform.range, 
+                                micro = micro)
+
+    while (runif(1) > (exp(x.c.log.den) + epsilon) / (exp(x.p1.log.den) + epsilon)) {
+      x.p1 <- delta.uniform.range[2] + 10
+      while (x.p1 > delta.uniform.range[2] | x.p1 < delta.uniform.range[1]) {
+        x.p1 <- rnorm(1, x.c, prop.scale)
+      }
+      x.p1.log.den <- logpostDelta(delta = x.p1, data_lcA = data_lcA, 
+                                data_lcB = data_lcB, theta = c(mu.t, sigma.t, tau.t),
+                                c = c.t, log = data.flux, unif = delta.uniform.range, 
+                                micro = micro)
+    }
+
+    # uphill
+    x.p2 <- delta.uniform.range[2] + 10
+    while (x.p2 > delta.uniform.range[2] | x.p2 < delta.uniform.range[1]) {
+      x.p2 <- rnorm(1, x.p1, prop.scale)
+    }
+    x.p2.log.den <- logpostDelta(delta = x.p2, data_lcA = data_lcA, 
+                                data_lcB = data_lcB, theta = c(mu.t, sigma.t, tau.t),
+                                c = c.t, log = data.flux, unif = delta.uniform.range, 
+                                micro = micro)
+
+    while (runif(1) > (exp(x.p2.log.den) + epsilon) / (exp(x.p1.log.den) + epsilon)) {
+      x.p2 <- delta.uniform.range[2] + 10
+      while (x.p2 > delta.uniform.range[2] | x.p2 < delta.uniform.range[1]) {
+        x.p2 <- rnorm(1, x.p1, prop.scale)
+      }
+      x.p2.log.den <- logpostDelta(delta = x.p2, data_lcA = data_lcA, 
+                                data_lcB = data_lcB, theta = c(mu.t, sigma.t, tau.t),
+                                c = c.t, log = data.flux, unif = delta.uniform.range, 
+                                micro = micro)
+    }
+
+    # downhill for N.d
+    z.p <- delta.uniform.range[2] + 10
+    while (z.p > delta.uniform.range[2] | z.p < delta.uniform.range[1]) {
+      z.p <- rnorm(1, x.p2, prop.scale)
+    }
+    z.p.log.den <- logpostDelta(delta = z.p, data_lcA = data_lcA, 
+                                data_lcB = data_lcB, theta = c(mu.t, sigma.t, tau.t),
+                                c = c.t, log = data.flux, unif = delta.uniform.range, 
+                                micro = micro)
+
+    while (runif(1) > (exp(x.p2.log.den) + epsilon) / (exp(z.p.log.den) + epsilon)) {
+      z.p <- delta.uniform.range[2] + 10
+      while (z.p > delta.uniform.range[2] | z.p < delta.uniform.range[1]) {
+        z.p <- rnorm(1, x.p2, prop.scale)
+      }
+      z.p.log.den <- logpostDelta(delta = z.p, data_lcA = data_lcA, 
+                                data_lcB = data_lcB, theta = c(mu.t, sigma.t, tau.t),
+                                c = c.t, log = data.flux, unif = delta.uniform.range, 
+                                micro = micro)
+    }
+
+    # accept or reject the proposal
+    min.nu <- min(1, (exp(x.c.log.den) + epsilon) / (exp(z.c.log.den) + epsilon))
+    min.de <- min(1, (exp(x.p2.log.den) + epsilon) / (exp(z.p.log.den) + epsilon))
+    l.mh <- x.p2.log.den - x.c.log.den + log(min.nu) - log(min.de)
+
+    if (l.mh > -rexp(1)) {
+      x.c <- x.p2
+      z.c <- z.p
+      accept <- 1
+    }
+
+    c(x.c, z.c, accept)
   }
 
   print(paste("Starting time:", Sys.time()))
@@ -359,7 +467,7 @@ bayesian <- function(data_lcA, data_lcB, data.flux,
     lcB <- -2.5 * log(lcB, base = 10)
   }
 
-  delta.t <- delta.ini  # delta ini
+  delta.t <- z.t <- delta.ini  # delta ini
   mu.t <- theta.ini[1]  # mu ini
   sigma.t <- theta.ini[2]  #sigma ini
   tau.t <- theta.ini[3]  #tau ini
@@ -407,19 +515,36 @@ bayesian <- function(data_lcA, data_lcB, data.flux,
   for (i in 1 : total.sample.size) {
 
     # delta and X(t) update
-    delta.p <- delta.t + delta.proposal.scale.adapt * delta.jumps[i]
-    l.metrop <- logpostDelta(delta.p, data_lcA = data_lcA, 
-                             data_lcB = data_lcB, c(mu.t, sigma.t, tau.t), c.t, 
-                             log = data.flux, unif = delta.uniform.range, micro) -
-	            logpostDelta(delta.t, data_lcA = data_lcA, 
-                             data_lcB = data_lcB, c(mu.t, sigma.t, tau.t), c.t, 
-                             log = data.flux, unif = delta.uniform.range, micro)
+    if (multimodality == FALSE) {
+      delta.p <- delta.t + delta.proposal.scale.adapt * delta.jumps[i]
+      l.metrop <- logpostDelta(delta.p, data_lcA = data_lcA, 
+                               data_lcB = data_lcB, c(mu.t, sigma.t, tau.t), c.t, 
+                               log = data.flux, unif = delta.uniform.range, micro) -
+	              logpostDelta(delta.t, data_lcA = data_lcA, 
+                               data_lcB = data_lcB, c(mu.t, sigma.t, tau.t), c.t, 
+                               log = data.flux, unif = delta.uniform.range, micro)
 
-    if (l.metrop > delta.thresh[i]) { 
-        delta.t <- delta.p 
-        delta.accept[i] <- 1
-        X.t <- postX(data_lcA, data_lcB, X.t, theta = c(mu.t, sigma.t, tau.t), 
-                      delta = delta.t, c = c.t, log = data.flux, micro)
+      if (l.metrop > delta.thresh[i]) { 
+          delta.t <- delta.p 
+          delta.accept[i] <- 1
+          X.t <- postX(data_lcA, data_lcB, X.t, theta = c(mu.t, sigma.t, tau.t), 
+                       delta = delta.t, c = c.t, log = data.flux, micro)
+      }
+
+    } else {
+
+      temp <- ram.transition(current.x = delta.t, current.z = z.t, 
+                             prop.scale = delta.proposal.scale, epsilon = 1e-300)
+
+      delta.t <- temp[1]
+      z.t <- temp[2]
+      delta.accept[i] <- temp[3]
+
+      if (delta.accept[i] == 1) { 
+	    X.t <- postX(data_lcA, data_lcB, X.t, theta = c(mu.t, sigma.t, tau.t), 
+                     delta = delta.t, c = c.t, log = data.flux, micro)
+      }
+
     }
 	
     delta.out[i] <- delta.t  
@@ -490,6 +615,7 @@ bayesian <- function(data_lcA, data_lcB, data.flux,
       X.t <- K.t - T.mat %*% c.t * ind    # synchronization
 
     }
+
     X.out[i, ] <- X.t
 
     # theta update
