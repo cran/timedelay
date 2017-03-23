@@ -5,15 +5,15 @@
   \code{entirelogprofilelikelihood} calculates the entire profilel likelihood curve over the given grid values of the time delay. 
 }
 
-\usage{entirelogprofilelikelihood(data_lcA, data_lcB, grid, 
+\usage{entirelogprofilelikelihood(data.lcA, data.lcB, grid, 
                                   initial, data.flux, 
                                   delta.uniform.range, micro)}
 
 \arguments{
-  \item{data_lcA}{
+  \item{data.lcA}{
     A (\emph{n} by 3) matrix; the first column has n observation times of light curve A, the second column has n flux (or magnitude) values of light curve A, the third column has n measurement errors of light curve A.
   }
-  \item{data_lcB}{
+  \item{data.lcB}{
     A (\emph{w} by 3) matrix; the first column has w observation times of light curve B, the second column has w flux (or magnitude) values of light curve B, the third column has w measurement errors of light curve B.
   }
   \item{grid}{
@@ -91,7 +91,7 @@
   ###  Running the following codes takes more time than CRAN policy
   ###  Please type the following lines without "#" to run the function and to see the results
 
-  #  logprof <- entirelogprofilelikelihood(data_lcA = lcA, data_lcB = lcB, grid = grid, 
+  #  logprof <- entirelogprofilelikelihood(data.lcA = lcA, data.lcB = lcB, grid = grid, 
   #                                        initial = initial, data.flux = FALSE, 
   #                                        delta.uniform.range = delta.uniform.range, micro = 3)
 

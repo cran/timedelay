@@ -54,7 +54,7 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
 
 
   # Cubic microlensing model (m = 3)
-  output <- bayesian(data_lcA = lcA, data_lcB = lcB, 
+  output <- bayesian(data.lcA = lcA, data.lcB = lcB, 
                      data.flux = FALSE, theta.ini = c(0, 0.01, 200), 
                      delta.ini = 50, delta.uniform.range = c(0, 100), 
                      delta.proposal.scale = 1, 
@@ -71,12 +71,12 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
 
   ### Argument description
 
-  # data_lcA: An n1 by three matrix for image A (light curve A) with 
+  # data.lcA: An n1 by three matrix for image A (light curve A) with 
   #           n1 observation times in the first column,
   #           n1 observed magnitudes (or in flux) in the second column,
   #           n1 measurement errors for image A in the third column.
 
-  # data_lcB: An n2 by three matrix for image B (light curve B) with 
+  # data.lcB: An n2 by three matrix for image B (light curve B) with 
   #           n2 observation times in the first column,
   #           n2 observed magnitudes (or in flux) in the second column,
   #           n2 measurement errors for image A in the third column.
@@ -149,7 +149,7 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
   ###  Running the following codes takes more time than CRAN policy
   ###  Please type the following lines without "#" to run the function and to see the results
 
-  #  logprof <- entirelogprofilelikelihood(data_lcA = lcA, data_lcB = lcB, grid = grid, 
+  #  logprof <- entirelogprofilelikelihood(data.lcA = lcA, data.lcB = lcB, grid = grid, 
   #                                        initial = initial, data.flux = FALSE, 
   #                                        delta.uniform.range = delta.uniform.range, micro = 3)
 
@@ -163,10 +163,10 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
 
   ### Argument description
 
-  # data_lcA: The data set (n by 3 matrix) for light curve A 
+  # data.lcA: The data set (n by 3 matrix) for light curve A 
   # (1st column: observation times, 2nd column: values of fluxes or magnitudes,
   #  3rd column: measurement errors)
-  # data_lcB: The data set (w by 3 matrix) for light curve B 
+  # data.lcB: The data set (w by 3 matrix) for light curve B 
   # (1st column: observation times, 2nd column: values of fluxes or magnitudes,
   #  3rd column: measurement errors)
   # grid: the vector of grid values of the time delay 

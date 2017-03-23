@@ -5,7 +5,7 @@
   \code{bayesian} produces posterior samples of all the model parameters one of which is the time delay. This function has options for two MCMC techniques, ancillarity-sufficiency interweaving strategy (ASIS) and adaptive MCMC, to improve the convergence rate of the MCMC.
 }
 
-\usage{bayesian(data_lcA, data_lcB, data.flux, theta.ini, 
+\usage{bayesian(data.lcA, data.lcB, data.flux, theta.ini, 
    delta.ini, delta.uniform.range, delta.proposal.scale, 
    tau.proposal.scale, tau.prior.shape, tau.prior.scale,
    sigma.prior.shape, sigma.prior.scale, asis = TRUE, micro, multimodality = FALSE, 
@@ -14,10 +14,10 @@
    sample.size, warmingup.size)}
 
 \arguments{
-  \item{data_lcA}{
+  \item{data.lcA}{
     A (\emph{n} by 3) matrix for image A (light curve A); the first column has n observation times, the second column contains n flux (or magnitude) values, the third column includes n measurement errors.
   }
-  \item{data_lcB}{
+  \item{data.lcB}{
     A (\emph{w} by 3) matrix for image B (light curve B); the first column has w observation times, the second column contains w flux (or magnitude) values, the third column includes w measurement errors.
   }
   \item{data.flux}{
@@ -135,7 +135,7 @@
   ###############################################
 
   # Cubic microlensing model (m = 3)
-  output = bayesian(data_lcA = lcA, data_lcB = lcB, 
+  output = bayesian(data.lcA = lcA, data.lcB = lcB, 
                     data.flux = FALSE, theta.ini = c(0, 0.01, 200), 
                     delta.ini = 50, delta.uniform.range = c(0, 100), 
                     delta.proposal.scale = 1, 
@@ -155,13 +155,19 @@
 
   # If multimodality exists, then please add two arguments:
   # multimodality = TRUE, adaptive.delta = FALSE
+  # This is to prevent the Markov chain from adapting to a local mode.
+  # If we know the distance between the most distant modes,
+  # try the smallest value of delta.proposal.scale that still makes 
+  # the Markov chain jump between those modes frequently.
+  # For example, when the distance is d, then try 
+  # delta.proposal.scale = d * 0.7, decreasing or increasing 0.7.
 
   # Graphical model checking 
   # beta.hat <- colMeans(output$beta)
   # delta.hat <- mean(output$delta)
   # time.x <- lcB[, 1] - delta.hat
   # time.covariate <- cbind(rep(1, length(time.x)), time.x, time.x^2, time.x^3)
-  ##### This time.covariate is when micro = 3
+  ##### This time.covariate is when micro = 3, a third-order polynomial regression.
   ##### With micro = 0, "time.covariate <- rep(1, length(time.x))" is used.
   # predicted <- time.covariate %*% beta.hat
   # plot(lcA[, 1], lcA[, 2], col = 2)     

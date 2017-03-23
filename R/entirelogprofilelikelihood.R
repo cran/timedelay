@@ -1,9 +1,9 @@
 
 ### log likelihood function of all the model parameters
-logpostDelta <- function(delta, data_lcA, data_lcB, theta, c, log, unif, micro) {
+logpostDelta <- function(delta, data.lcA, data.lcB, theta, c, log, unif, micro) {
 
-  time1 <- data_lcA[, 1]
-  time2 <- data_lcB[, 1]
+  time1 <- data.lcA[, 1]
+  time2 <- data.lcB[, 1]
   leng.time1 <- length(time1)
   leng.time2 <- length(time2)
 
@@ -17,10 +17,10 @@ logpostDelta <- function(delta, data_lcA, data_lcB, theta, c, log, unif, micro) 
 
   } else {
 
-    lcA <- data_lcA[, 2]
-    se.lcA <- data_lcA[, 3]
-    lcB <- data_lcB[, 2]
-    se.lcB <- data_lcB[, 3]
+    lcA <- data.lcA[, 2]
+    se.lcA <- data.lcA[, 3]
+    lcB <- data.lcB[, 2]
+    se.lcB <- data.lcB[, 3]
 
     if (log == TRUE) {
       # transform into magnitude scale 
@@ -142,7 +142,7 @@ logpostDelta <- function(delta, data_lcA, data_lcB, theta, c, log, unif, micro) 
 
 
 ### entire log profile-likelihood curve
-entirelogprofilelikelihood <- function(data_lcA, data_lcB, grid, 
+entirelogprofilelikelihood <- function(data.lcA, data.lcB, grid, 
                                        initial, data.flux, 
                                        delta.uniform.range, micro) {
 
@@ -157,7 +157,7 @@ entirelogprofilelikelihood <- function(data_lcA, data_lcB, grid,
       sigma <- exp(th[2])
       tau <- exp(th[3])
       c <- th[4 : (micro + 4)]
-      logpostDelta(delta = delta.temp, data_lcA = data_lcA, data_lcB = data_lcB,
+      logpostDelta(delta = delta.temp, data.lcA = data.lcA, data.lcB = data.lcB,
                    theta = c(mu, sigma, tau), c = c, log = data.flux, 
                    unif = delta.uniform.range, micro = micro) 
     }

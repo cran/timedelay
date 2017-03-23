@@ -1,10 +1,10 @@
 ### posterior samples of O-U parameters (mu, sigma, and tau)
 
-postTheta <- function (data_lcA, data_lcB, X, delta, previous.theta, tau.jump, 
+postTheta <- function (data.lcA, data.lcB, X, delta, previous.theta, tau.jump, 
                         tau.thresh, tau.prior.a, tau.prior.b, sigma.prior.a, sigma.prior.b) {
 
-  time1 <- data_lcA[, 1]
-  time2 <- data_lcB[, 1]
+  time1 <- data.lcA[, 1]
+  time2 <- data.lcB[, 1]
   leng.time1 <- length(time1)
   leng.time2 <- length(time2)
 
@@ -65,10 +65,10 @@ postTheta <- function (data_lcA, data_lcB, X, delta, previous.theta, tau.jump,
 
 
 ### log likelihood function of all the model parameters
-logpostDelta <- function(delta, data_lcA, data_lcB, theta, c, log, unif, micro) {
+logpostDelta <- function(delta, data.lcA, data.lcB, theta, c, log, unif, micro) {
 
-  time1 <- data_lcA[, 1]
-  time2 <- data_lcB[, 1]
+  time1 <- data.lcA[, 1]
+  time2 <- data.lcB[, 1]
   leng.time1 <- length(time1)
   leng.time2 <- length(time2)
 
@@ -82,10 +82,10 @@ logpostDelta <- function(delta, data_lcA, data_lcB, theta, c, log, unif, micro) 
 
   } else {
 
-    lcA <- data_lcA[, 2]
-    se.lcA <- data_lcA[, 3]
-    lcB <- data_lcB[, 2]
-    se.lcB <- data_lcB[, 3]
+    lcA <- data.lcA[, 2]
+    se.lcA <- data.lcA[, 3]
+    lcB <- data.lcB[, 2]
+    se.lcB <- data.lcB[, 3]
 
     if (log == TRUE) {
       # transform into magnitude scale 
@@ -207,17 +207,17 @@ logpostDelta <- function(delta, data_lcA, data_lcB, theta, c, log, unif, micro) 
 
 
 ### posterior samples of the latent true magnitudes
-postX <- function(data_lcA, data_lcB, X, theta, delta, c, log, micro) {
+postX <- function(data.lcA, data.lcB, X, theta, delta, c, log, micro) {
 
-  time1 <- data_lcA[, 1]
-  time2 <- data_lcB[, 1]
+  time1 <- data.lcA[, 1]
+  time2 <- data.lcB[, 1]
   leng.time1 <- length(time1)
   leng.time2 <- length(time2)
 
-  lcA <- data_lcA[, 2]
-  se.lcA <- data_lcA[, 3]
-  lcB <- data_lcB[, 2]
-  se.lcB <- data_lcB[, 3]
+  lcA <- data.lcA[, 2]
+  se.lcA <- data.lcA[, 3]
+  lcB <- data.lcB[, 2]
+  se.lcB <- data.lcB[, 3]
 
   if (log == TRUE) {
     # transform into magnitude scale 
@@ -307,7 +307,7 @@ postX <- function(data_lcA, data_lcB, X, theta, delta, c, log, micro) {
 
 
 ### Bayesian approach to time delay estimation
-bayesian <- function(data_lcA, data_lcB, data.flux, 
+bayesian <- function(data.lcA, data.lcB, data.flux, 
                      theta.ini, 
                      delta.ini, delta.uniform.range, delta.proposal.scale, 
                      tau.proposal.scale, tau.prior.shape, tau.prior.scale, 
@@ -357,12 +357,12 @@ bayesian <- function(data_lcA, data_lcB, data.flux,
 
     x.c <- current.x
     z.c <- current.z
-    x.c.log.den <- logpostDelta(delta = x.c, data_lcA = data_lcA, 
-                                data_lcB = data_lcB, theta = c(mu.t, sigma.t, tau.t),
+    x.c.log.den <- logpostDelta(delta = x.c, data.lcA = data.lcA, 
+                                data.lcB = data.lcB, theta = c(mu.t, sigma.t, tau.t),
                                 c = c.t, log = data.flux, unif = delta.uniform.range, 
                                 micro = micro)
-    z.c.log.den <- logpostDelta(delta = z.c, data_lcA = data_lcA, 
-                                data_lcB = data_lcB, theta = c(mu.t, sigma.t, tau.t),
+    z.c.log.den <- logpostDelta(delta = z.c, data.lcA = data.lcA, 
+                                data.lcB = data.lcB, theta = c(mu.t, sigma.t, tau.t),
                                 c = c.t, log = data.flux, unif = delta.uniform.range, 
                                 micro = micro)
     accept <- 0
@@ -372,8 +372,8 @@ bayesian <- function(data_lcA, data_lcB, data.flux,
     while (x.p1 > delta.uniform.range[2] | x.p1 < delta.uniform.range[1]) {
       x.p1 <- rnorm(1, x.c, prop.scale)
     }
-    x.p1.log.den <- logpostDelta(delta = x.p1, data_lcA = data_lcA, 
-                                data_lcB = data_lcB, theta = c(mu.t, sigma.t, tau.t),
+    x.p1.log.den <- logpostDelta(delta = x.p1, data.lcA = data.lcA, 
+                                data.lcB = data.lcB, theta = c(mu.t, sigma.t, tau.t),
                                 c = c.t, log = data.flux, unif = delta.uniform.range, 
                                 micro = micro)
 
@@ -382,8 +382,8 @@ bayesian <- function(data_lcA, data_lcB, data.flux,
       while (x.p1 > delta.uniform.range[2] | x.p1 < delta.uniform.range[1]) {
         x.p1 <- rnorm(1, x.c, prop.scale)
       }
-      x.p1.log.den <- logpostDelta(delta = x.p1, data_lcA = data_lcA, 
-                                data_lcB = data_lcB, theta = c(mu.t, sigma.t, tau.t),
+      x.p1.log.den <- logpostDelta(delta = x.p1, data.lcA = data.lcA, 
+                                data.lcB = data.lcB, theta = c(mu.t, sigma.t, tau.t),
                                 c = c.t, log = data.flux, unif = delta.uniform.range, 
                                 micro = micro)
     }
@@ -393,8 +393,8 @@ bayesian <- function(data_lcA, data_lcB, data.flux,
     while (x.p2 > delta.uniform.range[2] | x.p2 < delta.uniform.range[1]) {
       x.p2 <- rnorm(1, x.p1, prop.scale)
     }
-    x.p2.log.den <- logpostDelta(delta = x.p2, data_lcA = data_lcA, 
-                                data_lcB = data_lcB, theta = c(mu.t, sigma.t, tau.t),
+    x.p2.log.den <- logpostDelta(delta = x.p2, data.lcA = data.lcA, 
+                                data.lcB = data.lcB, theta = c(mu.t, sigma.t, tau.t),
                                 c = c.t, log = data.flux, unif = delta.uniform.range, 
                                 micro = micro)
 
@@ -403,8 +403,8 @@ bayesian <- function(data_lcA, data_lcB, data.flux,
       while (x.p2 > delta.uniform.range[2] | x.p2 < delta.uniform.range[1]) {
         x.p2 <- rnorm(1, x.p1, prop.scale)
       }
-      x.p2.log.den <- logpostDelta(delta = x.p2, data_lcA = data_lcA, 
-                                data_lcB = data_lcB, theta = c(mu.t, sigma.t, tau.t),
+      x.p2.log.den <- logpostDelta(delta = x.p2, data.lcA = data.lcA, 
+                                data.lcB = data.lcB, theta = c(mu.t, sigma.t, tau.t),
                                 c = c.t, log = data.flux, unif = delta.uniform.range, 
                                 micro = micro)
     }
@@ -414,8 +414,8 @@ bayesian <- function(data_lcA, data_lcB, data.flux,
     while (z.p > delta.uniform.range[2] | z.p < delta.uniform.range[1]) {
       z.p <- rnorm(1, x.p2, prop.scale)
     }
-    z.p.log.den <- logpostDelta(delta = z.p, data_lcA = data_lcA, 
-                                data_lcB = data_lcB, theta = c(mu.t, sigma.t, tau.t),
+    z.p.log.den <- logpostDelta(delta = z.p, data.lcA = data.lcA, 
+                                data.lcB = data.lcB, theta = c(mu.t, sigma.t, tau.t),
                                 c = c.t, log = data.flux, unif = delta.uniform.range, 
                                 micro = micro)
 
@@ -424,8 +424,8 @@ bayesian <- function(data_lcA, data_lcB, data.flux,
       while (z.p > delta.uniform.range[2] | z.p < delta.uniform.range[1]) {
         z.p <- rnorm(1, x.p2, prop.scale)
       }
-      z.p.log.den <- logpostDelta(delta = z.p, data_lcA = data_lcA, 
-                                data_lcB = data_lcB, theta = c(mu.t, sigma.t, tau.t),
+      z.p.log.den <- logpostDelta(delta = z.p, data.lcA = data.lcA, 
+                                data.lcB = data.lcB, theta = c(mu.t, sigma.t, tau.t),
                                 c = c.t, log = data.flux, unif = delta.uniform.range, 
                                 micro = micro)
     }
@@ -448,16 +448,16 @@ bayesian <- function(data_lcA, data_lcB, data.flux,
 
   total.sample.size <- sample.size + warmingup.size
 
-  time1 <- data_lcA[, 1]
-  time2 <- data_lcB[, 1]
+  time1 <- data.lcA[, 1]
+  time2 <- data.lcB[, 1]
   leng.time1 <- length(time1)
   leng.time2 <- length(time2)
   leng.time.comb <- leng.time1 + leng.time2
 
-  lcA <- data_lcA[, 2]
-  se.lcA <- data_lcA[, 3]
-  lcB <- data_lcB[, 2]
-  se.lcB <- data_lcB[, 3]
+  lcA <- data.lcA[, 2]
+  se.lcA <- data.lcA[, 3]
+  lcB <- data.lcB[, 2]
+  se.lcB <- data.lcB[, 3]
 
   if (data.flux == TRUE) {
     # transform into magnitude scale 
@@ -517,17 +517,17 @@ bayesian <- function(data_lcA, data_lcB, data.flux,
     # delta and X(t) update
     if (multimodality == FALSE) {
       delta.p <- delta.t + delta.proposal.scale.adapt * delta.jumps[i]
-      l.metrop <- logpostDelta(delta.p, data_lcA = data_lcA, 
-                               data_lcB = data_lcB, c(mu.t, sigma.t, tau.t), c.t, 
+      l.metrop <- logpostDelta(delta.p, data.lcA = data.lcA, 
+                               data.lcB = data.lcB, c(mu.t, sigma.t, tau.t), c.t, 
                                log = data.flux, unif = delta.uniform.range, micro) -
-	              logpostDelta(delta.t, data_lcA = data_lcA, 
-                               data_lcB = data_lcB, c(mu.t, sigma.t, tau.t), c.t, 
+	              logpostDelta(delta.t, data.lcA = data.lcA, 
+                               data.lcB = data.lcB, c(mu.t, sigma.t, tau.t), c.t, 
                                log = data.flux, unif = delta.uniform.range, micro)
 
       if (l.metrop > delta.thresh[i]) { 
           delta.t <- delta.p 
           delta.accept[i] <- 1
-          X.t <- postX(data_lcA, data_lcB, X.t, theta = c(mu.t, sigma.t, tau.t), 
+          X.t <- postX(data.lcA, data.lcB, X.t, theta = c(mu.t, sigma.t, tau.t), 
                        delta = delta.t, c = c.t, log = data.flux, micro)
       }
 
@@ -541,7 +541,7 @@ bayesian <- function(data_lcA, data_lcB, data.flux,
       delta.accept[i] <- temp[3]
 
       if (delta.accept[i] == 1) { 
-	    X.t <- postX(data_lcA, data_lcB, X.t, theta = c(mu.t, sigma.t, tau.t), 
+	    X.t <- postX(data.lcA, data.lcB, X.t, theta = c(mu.t, sigma.t, tau.t), 
                      delta = delta.t, c = c.t, log = data.flux, micro)
       }
 
@@ -620,7 +620,7 @@ bayesian <- function(data_lcA, data_lcB, data.flux,
 
     # theta update
     tau.jump.adapt <- tau.proposal.scale.adapt * tau.jumps[i]
-    theta.update <- postTheta(data_lcA = data_lcA, data_lcB = data_lcB, X = X.t, 
+    theta.update <- postTheta(data.lcA = data.lcA, data.lcB = data.lcB, X = X.t, 
                               delta = delta.t, 
                                previous.theta = c(mu.t, sigma.t, tau.t), 
                                tau.jump = tau.jump.adapt, tau.thresh = tau.thresh[i],
