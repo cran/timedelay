@@ -9,7 +9,7 @@
    delta.ini, delta.uniform.range, delta.proposal.scale, 
    tau.proposal.scale, tau.prior.shape, tau.prior.scale,
    sigma.prior.shape, sigma.prior.scale, asis = TRUE, micro, multimodality = FALSE, 
-   adaptive.freqeuncy, adaptive.delta =  TRUE, adaptive.delta.factor,
+   adaptive.frequency, adaptive.delta =  TRUE, adaptive.delta.factor,
    adaptive.tau = TRUE, adaptive.tau.factor,
    sample.size, warmingup.size)}
 
@@ -59,7 +59,7 @@
   \item{multimodality}{
     (Optional) "TRUE" if we use a repelling-attracting Metropolis algorithm for sampling Delta. When it is "TRUE" it is recommended that adaptive.delta = FALSE so that the adaptive MCMC is not used in the presence of multimodality. Default is "FALSE". 
   }
-  \item{adaptive.freqeuncy}{
+  \item{adaptive.frequency}{
     (If "adaptive.delta = TRUE" or "adaptive.tau = TRUE") The adaptive MCMC is applied for every specified frequency. If it is specified as 500, the adaptive MCMC is applied to every 500th iterstion.
   }
   \item{adaptive.delta}{

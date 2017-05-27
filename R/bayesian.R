@@ -313,7 +313,7 @@ bayesian <- function(data.lcA, data.lcB, data.flux,
                      tau.proposal.scale, tau.prior.shape, tau.prior.scale, 
                      sigma.prior.shape, sigma.prior.scale,                        
                      asis = TRUE, micro, multimodality = FALSE,
-                     adaptive.freqeuncy = 100,
+                     adaptive.frequency = 100,
                      adaptive.delta = TRUE, adaptive.delta.factor = 0.01,
                      adaptive.tau = TRUE, adaptive.tau.factor = 0.01,
                      sample.size = 50, warmingup.size = 50) {
@@ -638,11 +638,11 @@ bayesian <- function(data.lcA, data.lcB, data.flux,
     tau.t <- tau.out[i] <- theta.update[3]
 
     if (adaptive.delta == TRUE) {
-      if (i %% adaptive.freqeuncy == 0) {
-        if(mean(delta.accept[i - (adaptive.freqeuncy - 1) : i]) > 0.44) {
-          scale.adj <- exp(min(adaptive.delta.factor, 1 / sqrt(i / adaptive.freqeuncy)))
-        } else if (mean(delta.accept[i - (adaptive.freqeuncy - 1) : i]) < 0.23) {
-          scale.adj <- exp(-min(adaptive.delta.factor, 1 / sqrt(i / adaptive.freqeuncy)))
+      if (i %% adaptive.frequency == 0) {
+        if(mean(delta.accept[i - (adaptive.frequency - 1) : i]) > 0.44) {
+          scale.adj <- exp(min(adaptive.delta.factor, 1 / sqrt(i / adaptive.frequency)))
+        } else if (mean(delta.accept[i - (adaptive.frequency - 1) : i]) < 0.23) {
+          scale.adj <- exp(-min(adaptive.delta.factor, 1 / sqrt(i / adaptive.frequency)))
         } else {
           scale.adj <- 1
         }
@@ -651,11 +651,11 @@ bayesian <- function(data.lcA, data.lcB, data.flux,
     }
 
     if (adaptive.tau == TRUE) {
-      if (i %% adaptive.freqeuncy == 0) {
-        if(mean(tau.accept[i - (adaptive.freqeuncy - 1) : i]) > 0.44) {
-          scale.adj <- exp(min(adaptive.tau.factor, 1 / sqrt(i / adaptive.freqeuncy)))
-        } else if (mean(tau.accept[i - (adaptive.freqeuncy - 1) : i]) < 0.23) {
-          scale.adj <- exp(-min(adaptive.tau.factor, 1 / sqrt(i / adaptive.freqeuncy)))
+      if (i %% adaptive.frequency == 0) {
+        if(mean(tau.accept[i - (adaptive.frequency - 1) : i]) > 0.44) {
+          scale.adj <- exp(min(adaptive.tau.factor, 1 / sqrt(i / adaptive.frequency)))
+        } else if (mean(tau.accept[i - (adaptive.frequency - 1) : i]) < 0.23) {
+          scale.adj <- exp(-min(adaptive.tau.factor, 1 / sqrt(i / adaptive.frequency)))
         } else {
           scale.adj <- 1
         }

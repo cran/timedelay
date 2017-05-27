@@ -1,9 +1,9 @@
-2567e875fd50cb0059e0c0bc4b04fea5 *DESCRIPTION
+72ce92da9c58abcf435ee20cfb2e1efd *DESCRIPTION
 adf81abe5a7cd699273a1847b0481f51 *NAMESPACE
-028414f921d71623a57088a113310ac2 *R/bayesian.R
+aa00169f164c28882acf7299e8f7bce7 *R/bayesian.R
 96fb4073538e4aad1c39bc905a34db68 *R/entirelogprofilelikelihood.R
 2935e2a8dc6f1c6358d48d2681dcfd11 *data/simple.RData
-b1cb77ea829c2be21996d205a07669fc *man/bayesian.Rd
+7d3e68e64239ec5a42601dc1bfd90f47 *man/bayesian.Rd
 cc7a6ac4668e5b0134d667db6aa0087d *man/entirelogprofilelikelihood.Rd
 8a96d701ef76fff4f5f28cf6993b66b8 *man/simple.Rd
 c521083a76fe96f67c13c87f30a8e059 *man/timedelay-internal.Rd
