@@ -10,8 +10,8 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
   \tabular{ll}{
     Package: \tab timedelay\cr
     Type: \tab Package\cr
-    Version: \tab 1.0.0\cr
-    Date: \tab 2015-05-25\cr
+    Version: \tab 1.0.8\cr
+    Date: \tab 2018-05-16\cr
     License: \tab GPL-2\cr
     Main functions: \tab \code{\link{bayesian}}, \code{\link{entirelogprofilelikelihood}}\cr
   }
@@ -30,9 +30,6 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
   # Loading datasets
   data(simple)
   head(simple)
-
-  # A typical quasar data set  
-  library(mnormt)
 
   # Subset (data for image A) of the typical quasar data set
   lcA <- simple[, 1 : 3]

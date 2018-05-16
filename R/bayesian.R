@@ -575,8 +575,7 @@ bayesian <- function(data.lcA, data.lcB, data.flux,
     c.t.mean.temp <- c.t.var.temp %*% t(T.mat) %*% V.inv.mat %*% (lcB - X.t[ind == 1])
     c.t.var <- chol2inv(chol(c.t.var.inv.temp + diag(micro + 1) / 10^5))
     c.t.mean <- c.t.var %*% c.t.var.inv.temp %*% c.t.mean.temp
-    c.t <- c.out[i, ] <- rmnorm(1, mean = c.t.mean, varcov = c.t.var)
-
+    c.t <- c.out[i, ] <- mvrnorm(1, mu = c.t.mean, Sigma = c.t.var)
 
     if (asis == TRUE) {
 
@@ -611,7 +610,7 @@ bayesian <- function(data.lcA, data.lcB, data.flux,
       XVX <- t(X.c * V.inv.elem) %*% X.c
       c.var <- chol2inv(chol(t(X.c * V.inv.elem) %*% X.c + diag(micro + 1) / 10^5))
       c.mean <- c.var %*% t(X.c * V.inv.elem) %*% y.c
-      c.t <- c.out[i, ] <- rmnorm(1, mean = c.mean, varcov = c.var)
+      c.t <- c.out[i, ] <- mvrnorm(1, mu = c.mean, Sigma = c.var)
       X.t <- K.t - T.mat %*% c.t * ind    # synchronization
 
     }

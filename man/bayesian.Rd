@@ -114,7 +114,6 @@
 
   # A typical quasar data set  
   head(simple)
-  library(mnormt)
 
   # Subset (data for image A) of the typical quasar data set
   lcA <- simple[, 1 : 3]
