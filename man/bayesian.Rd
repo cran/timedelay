@@ -2,53 +2,54 @@
 \alias{bayesian}
 \title{Estimating the time delay via the Bayesian method}
 \description{
-  \code{bayesian} produces posterior samples of all the model parameters one of which is the time delay. This function has options for two MCMC techniques, ancillarity-sufficiency interweaving strategy (ASIS) and adaptive MCMC, to improve the convergence rate of the MCMC.
+  \code{bayesian} produces posterior samples of all the model parameters including the time delay. This function has options for three Markov chain Monte Carlo (MCMC) techniques; (i) ancillarity-sufficiency interweaving strategy (ASIS) and (ii) adaptive MCMC to improve the convergence rate, and (iii) repelling-attracting Metropolis for multimodality. 
 }
 
 \usage{bayesian(data.lcA, data.lcB, data.flux, theta.ini, 
    delta.ini, delta.uniform.range, delta.proposal.scale, 
-   tau.proposal.scale, tau.prior.shape, tau.prior.scale,
-   sigma.prior.shape, sigma.prior.scale, asis = TRUE, micro, multimodality = FALSE, 
+   tau.proposal.scale, tau.prior.shape = 1, tau.prior.scale = 1,
+   sigma.prior.shape = 1, sigma.prior.scale = 1e-7, 
+   asis = TRUE, micro, multimodality = FALSE, 
    adaptive.frequency, adaptive.delta =  TRUE, adaptive.delta.factor,
    adaptive.tau = TRUE, adaptive.tau.factor,
    sample.size, warmingup.size)}
 
 \arguments{
   \item{data.lcA}{
-    A (\emph{n} by 3) matrix for image A (light curve A); the first column has n observation times, the second column contains n flux (or magnitude) values, the third column includes n measurement errors.
+    A (\eqn{n_1} by 3) matrix for image A (light curve A); the first column has \eqn{n_1} observation times, the second column contains \eqn{n_1} flux (or magnitude) values, the third column includes \eqn{n_1} measurement errors.
   }
   \item{data.lcB}{
-    A (\emph{w} by 3) matrix for image B (light curve B); the first column has w observation times, the second column contains w flux (or magnitude) values, the third column includes w measurement errors.
+    A (\eqn{n_2} by 3) matrix for image B (light curve B); the first column has \eqn{n_2} observation times, the second column contains \eqn{n_2} flux (or magnitude) values, the third column includes \eqn{n_2} measurement errors.
   }
   \item{data.flux}{
-    "True" if data are recorded on flux scale or "FALSE" if data are on magnitude scale. If your observed time series can take on negative values, then data.flux = FALSE.
+    "True" if data are recorded on flux scale or "FALSE" if data are on magnitude scale. Simply speaking, if your observed time series can take on negative values, then data.flux = FALSE.
   }
   \item{theta.ini}{
-    Initial values of theta = (mu, sigma, tau) for MCMC.
+    Initial values of the OU parameters, (\eqn{\mu}, \eqn{\sigma}, \eqn{\tau}).
   }
   \item{delta.ini}{
-    Initial values of the time delay for MCMC.
+    Initial value of the time delay, \eqn{\Delta}.
   }
   \item{delta.uniform.range}{
-    The range of the Uniform prior distribution for the time delay. The feasible entire support is c(min(simple[, 1]) - max(simple[, 1]), max(simple[, 1]) - min(simple[, 1])).
+    The range of the Uniform prior distribution for the time delay.
   }
   \item{delta.proposal.scale}{
     The proposal scale of the Metropolis step for the time delay.
   }
   \item{tau.proposal.scale}{
-    The proposal scale of the Metropolis-Hastings step for tau.
+    The proposal scale of the Metropolis-Hastings step for \eqn{\tau}.
   }
   \item{tau.prior.shape}{
-    The shape parameter of the Inverse-Gamma hyper-prior distribution for tau. 
+    The shape parameter of the Inverse-Gamma hyper-prior distribution for \eqn{\tau}. Default is 1.
   }
   \item{tau.prior.scale}{
-    The scale parameter of the Inverse-Gamma hyper-prior distribution for tau. 
+    The scale parameter of the Inverse-Gamma hyper-prior distribution for \eqn{\tau}. Default is 1.
   }
   \item{sigma.prior.shape}{
-    The shape parameter of the Inverse-Gamma hyper-prior distribution for sigma^2.
+    The shape parameter of the Inverse-Gamma hyper-prior distribution for \eqn{\sigma^2}.  Default is 1.
   }
   \item{sigma.prior.scale}{
-    The scale parameter of the Inverse-Gamma hyper-prior distribution for sigma^2. If no prior information is available, we recommend using 2 * 10^(-7).
+    The scale parameter of the Inverse-Gamma hyper-prior distribution for \eqn{\sigma^2}. Default is 1e-7.
   }
   \item{asis}{
     (Optional) "TRUE" if we use the ancillarity-sufficiency interweaving strategy (ASIS) for c (always recommended). Default is "TRUE".
@@ -66,25 +67,25 @@
     (Optional) "TRUE" if we use the adaptive MCMC for the time delay. Default is "TRUE".
   }
   \item{adaptive.delta.factor}{
-    (If "adaptive.delta = TRUE") The factor, exp(adaptive.delta.factor) or exp(-adaptive.delta.factor), multiplied to the proposal scale of the time delay for adaptive MCMC.
+    (If "adaptive.delta = TRUE") The factor, exp(\eqn{\pm}adaptive.delta.factor), multiplied by the proposal scale of the time delay for adaptive MCMC.
   }
   \item{adaptive.tau}{
     (Optional) "TRUE" if we use the adaptive MCMC for tau. Default is "TRUE".
   }
   \item{adaptive.tau.factor}{
-    (If "adaptive.tau = TRUE") The factor, exp(adaptive.tau.factor) or exp(-adaptive.tau.factor), multiplied to the proposal scale of tau for adaptive MCMC.
+    (If "adaptive.tau = TRUE") The factor, exp(\eqn{\pm}adaptive.tau.factor), multiplied by the proposal scale of tau for adaptive MCMC.
   }
   \item{sample.size}{
     The number of the posterior samples of each model parameter.
   }
   \item{warmingup.size}{
-    The number of burn-ins for MCMC.
+    The number of burn-in posterior samples.
   }
 
 }
 
 \details{
-  The function \code{bayesian} produces posterior samples of the model parameters one of which is the time delay.
+  The function \code{bayesian} produces posterior samples of the model parameters one of which is the time delay. Please note that when astronomical time series data are loaded on R by \code{read.table}, \code{read.csv}, etc., some decimal places of the the observation times are automatically rounded because R's default is to load seven effective digits. For example, R will load the observation time 51075.412789 as 51075.41. This default will produce many ties in observation times even though there is actually no tie in observation times. To prevent this, please type "\code{options(digits = 11)}" before loading the data if the observation times are in seven effective digits.
 }
 
 \value{
@@ -100,8 +101,8 @@
 }
 
 \references{
-    Hyungsuk Tak, Kaisey Mandel, David A. van Dyk, Vinay L. Kashyap, Xiao-Li Meng, and Aneta Siemiginowska (2017+). "Bayesian Estimates of Astronomical Time Delays between Gravitationally Lensed Stochastic Light Curves," tentatively accepted in Annals of Applied Statistics (ArXiv 1602.01462).
-    Hyungsuk Tak, Xiao-Li Meng, David A. van Dyk (2017+). "A Repelling-Attracting Metropolis Algorithm for Multimodality," submitted to Journal of Computational and Graphical Statistics (ArXiv 1601.05633).
+    Hyungsuk Tak, Kaisey Mandel, David A. van Dyk, Vinay L. Kashyap, Xiao-Li Meng, and Aneta Siemiginowska (2017). "Bayesian Estimates of Astronomical Time Delays between Gravitationally Lensed Stochastic Light Curves," The Annals of Applied Statistics, 11 (3), 1309-1348.
+    Hyungsuk Tak, Xiao-Li Meng, and David A. van Dyk (2018), "A Repelling-Attracting Metropolis Algorithm for Multimodality", Journal of Computational and Graphical Statistics, 27 (3), 479-490.
 }
 
 \author{
@@ -134,6 +135,7 @@
   ###############################################
 
   # Cubic microlensing model (m = 3)
+  \donttest{
   output = bayesian(data.lcA = lcA, data.lcB = lcB, 
                     data.flux = FALSE, theta.ini = c(0, 0.01, 200), 
                     delta.ini = 50, delta.uniform.range = c(0, 100), 
@@ -142,10 +144,9 @@
                     tau.prior.shape = 1, tau.prior.scale = 1,
                     sigma.prior.shape = 1, sigma.prior.scale = 2 / 10^7, 
                     asis = TRUE, micro = 3,
-                    sample.size = 100, warmingup.size = 50)
-
+                    sample.size = 10, warmingup.size = 10)
   names(output)
-
+  }
   # hist(output$delta, 20)
   # plot(output$delta, type = "l")
   # acf(output$delta)

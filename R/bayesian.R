@@ -310,13 +310,13 @@ postX <- function(data.lcA, data.lcB, X, theta, delta, c, log, micro) {
 bayesian <- function(data.lcA, data.lcB, data.flux, 
                      theta.ini, 
                      delta.ini, delta.uniform.range, delta.proposal.scale, 
-                     tau.proposal.scale, tau.prior.shape, tau.prior.scale, 
-                     sigma.prior.shape, sigma.prior.scale,                        
+                     tau.proposal.scale, tau.prior.shape = 1, tau.prior.scale = 1, 
+                     sigma.prior.shape = 1, sigma.prior.scale = 1e-7,     
                      asis = TRUE, micro, multimodality = FALSE,
                      adaptive.frequency = 100,
                      adaptive.delta = TRUE, adaptive.delta.factor = 0.01,
                      adaptive.tau = TRUE, adaptive.tau.factor = 0.01,
-                     sample.size = 50, warmingup.size = 50) {
+                     sample.size, warmingup.size) {
 
   if (multimodality == TRUE & asis == TRUE & adaptive.delta == TRUE & adaptive.tau == TRUE) {
     print("Options for the Bayesian method: RAM for Delta (Please make sure that adaptive.delta = FALSE), ASIS for beta, Adaptive MCMC for Delta and tau.")

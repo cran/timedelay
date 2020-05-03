@@ -1,4 +1,5 @@
 importFrom(MASS, mvrnorm)
+importFrom(mvtnorm, rmvnorm)
 importFrom(stats, dnorm, optim, pnorm, qnorm, rexp, rgamma, rnorm, runif, lm)
 importFrom(graphics, abline, axis, legend, lines, par, points)
 exportPattern("^[[:alpha:]]+")

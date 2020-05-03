@@ -11,10 +11,10 @@
 
 \arguments{
   \item{data.lcA}{
-    A (\emph{n} by 3) matrix; the first column has n observation times of light curve A, the second column has n flux (or magnitude) values of light curve A, the third column has n measurement errors of light curve A.
+    A (\eqn{n_1} by 3) matrix for image A (light curve A); the first column has \eqn{n_1} observation times, the second column contains \eqn{n_1} flux (or magnitude) values, the third column includes \eqn{n_1} measurement errors.
   }
   \item{data.lcB}{
-    A (\emph{w} by 3) matrix; the first column has w observation times of light curve B, the second column has w flux (or magnitude) values of light curve B, the third column has w measurement errors of light curve B.
+    A (\eqn{n_2} by 3) matrix for image B (light curve B); the first column has \eqn{n_2} observation times, the second column contains \eqn{n_2} flux (or magnitude) values, the third column includes \eqn{n_2} measurement errors.
   }
   \item{grid}{
     A vector containing values of the time delay on which the profile likelihood values are calculated. We recommend using the grid interval equal to 0.1.
@@ -26,7 +26,7 @@
     "True" if data are recorded on flux scale or "FALSE" if data are on magnitude scale.
   }
   \item{delta.uniform.range}{
-    The range of the Uniform prior distribution for the time delay. The feasible entire support is c(min(simple[, 1]) - max(simple[, 1]), max(simple[, 1]) - min(simple[, 1])).
+    The range of the Uniform prior distribution for the time delay.
   }
   \item{micro}{
     It determines the order of a polynomial regression model that accounts for the difference between microlensing trends. Default is 3. When zero is assigned, the Bayesian model fits a curve-shifted model.
@@ -43,7 +43,7 @@
 }
 
 \references{
-    Hyungsuk Tak, Kaisey Mandel, David A. van Dyk, Vinay L. Kashyap, Xiao-Li Meng, and Aneta Siemiginowska (2016+). "Bayesian Estimates of Astronomical Time Delays between Gravitationally Lensed Stochastic Light Curves," tentatively accepted in Annals of Applied Statistics (ArXiv 1602.01462).
+    Hyungsuk Tak, Kaisey Mandel, David A. van Dyk, Vinay L. Kashyap, Xiao-Li Meng, and Aneta Siemiginowska (2017). "Bayesian Estimates of Astronomical Time Delays between Gravitationally Lensed Stochastic Light Curves," The Annals of Applied Statistics, 11 (3), 1309-1348.
 }
 
 \author{
@@ -88,22 +88,18 @@
   # grid interval "by = 0.1" is recommended,
   # but users can set a finer grid of values of the time delay.
 
-  ###  Running the following codes takes more time than CRAN policy
-  ###  Please type the following lines without "#" to run the function and to see the results
-
-  #  logprof <- entirelogprofilelikelihood(data.lcA = lcA, data.lcB = lcB, grid = grid, 
-  #                                        initial = initial, data.flux = FALSE, 
-  #                                        delta.uniform.range = delta.uniform.range, micro = 3)
-
-  #  plot(grid, logprof, type = "l", 
-  #       xlab = expression(bold(Delta)),       
-  #       ylab = expression(bold(paste("log L"[prof], "(", Delta, ")"))))
-  #  prof <- exp(logprof - max(logprof))  # normalization
-  #  plot(grid, prof, type = "l", 
-  #       xlab = expression(bold(Delta)),       
-  #       ylab = expression(bold(paste("L"[prof], "(", Delta, ")"))))
-
-
+  \donttest{
+  logprof <- entirelogprofilelikelihood(data.lcA = lcA, data.lcB = lcB, grid = grid, 
+                                        initial = initial, data.flux = FALSE, 
+                                        delta.uniform.range = delta.uniform.range, micro = 3)
+  plot(grid, logprof, type = "l", 
+       xlab = expression(bold(Delta)),       
+       ylab = expression(bold(paste("log L"[prof], "(", Delta, ")"))))
+  prof <- exp(logprof - max(logprof))  # normalization
+  plot(grid, prof, type = "l", 
+       xlab = expression(bold(Delta)),       
+       ylab = expression(bold(paste("L"[prof], "(", Delta, ")"))))
+  }
 
 }
 

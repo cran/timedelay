@@ -4,16 +4,16 @@
 \docType{package}
 \title{Time Delay Estimation for Stochastic Time Series of Gravitationally Lensed Quasars}
 \description{
-The R package \pkg{timedelay} provides a toolbox to estimate the time delay between the brightness time series of gravitationally lensed quasar images via Bayesian and profile likelihood approaches. The model is based on a state-space representation for irregularly observed time series data generated from a latent continuous-time Ornstein-Uhlenbeck process. Our Bayesian method adopts scientifically motivated hyper-prior distributions and a Metropoli-Hastings within Gibbs sampler, producing posterior samples of the model parameters that include the time delay. A profile likelihood of the time delay is a simple approximation to the marginal posterior distribution of the time delay. Both Bayesian and profile likelihood approaches complement each other, producing almost identical results; the Bayesian way is more principled but the profile likelihood is easier to be implemented.
+The R package \pkg{timedelay} provides a toolbox to estimate the time delay between the brightness time series of gravitationally lensed quasar images via Bayesian and profile likelihood approaches. The model is based on a state-space representation for irregularly observed time series data generated from a latent continuous-time Ornstein-Uhlenbeck process. Our Bayesian method adopts scientifically motivated hyper-prior distributions and a Metropoli-Hastings within Gibbs sampler, producing posterior samples of the model parameters that include the time delay. A profile likelihood of the time delay is a simple approximation to the marginal posterior distribution of the time delay. Both Bayesian and profile likelihood approaches complement each other, producing almost identical results; the Bayesian way is more principled but the profile likelihood is easier to be implemented. A new functionality is added in version 1.0.9 for estimating the time delay between doubly-lensed light curves observed in two bands.
 }
 \details{
   \tabular{ll}{
     Package: \tab timedelay\cr
     Type: \tab Package\cr
-    Version: \tab 1.0.8\cr
-    Date: \tab 2018-05-16\cr
+    Version: \tab 1.0.9\cr
+    Date: \tab 2020-05-03\cr
     License: \tab GPL-2\cr
-    Main functions: \tab \code{\link{bayesian}}, \code{\link{entirelogprofilelikelihood}}\cr
+    Main functions: \tab \code{\link{bayesian}}, \code{\link{bayesian.multiband}}, \code{\link{entirelogprofilelikelihood}}\cr
   }
 
 }
@@ -23,7 +23,8 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
   Maintainer: Hyungsuk Tak <hyungsuk.tak@gmail.com>
 }
 \references{
-    Hyungsuk Tak, Kaisey Mandel, David A. van Dyk, Vinay L. Kashyap, Xiao-Li Meng, and Aneta Siemiginowska (2016+). "Bayesian Estimates of Astronomical Time Delays between Gravitationally Lensed Stochastic Light Curves," tentatively accepted in Annals of Applied Statistics (ArXiv 1602.01462).
+    Hyungsuk Tak, Kaisey Mandel, David A. van Dyk, Vinay L. Kashyap, Xiao-Li Meng, and Aneta Siemiginowska (2017). "Bayesian Estimates of Astronomical Time Delays between Gravitationally Lensed Stochastic Light Curves," The Annals of Applied Statistics, 11 (3), 1309-1348.
+    Hyungsuk Tak, Xiao-Li Meng, and David A. van Dyk (2018), "A Repelling-Attracting Metropolis Algorithm for Multimodality", Journal of Computational and Graphical Statistics, 27 (3), 479-490.
 }
 \examples{
 
