@@ -1,4 +1,4 @@
-9f19ec5b90b75a3035f86e6e50863026 *DESCRIPTION
+419a75989a52f4615a135a10b5c8a3af *DESCRIPTION
 122c642705926caae99c196a19743e4f *NAMESPACE
 01157db174d54193692ce49d82f6c926 *R/bayesian.R
 e121d1063399602d844287d6d8b59930 *R/bayesian.multiband.R
@@ -13,4 +13,4 @@ c930b98c4b3f8e70ff236e0d4918c75f *man/entirelogprofilelikelihood.Rd
 bf08d9dd1e09823e67c3a9808c619df2 *man/simple.band1.Rd
 d121df1f94b661df0c04fe9aaffce6cd *man/simple.band2.Rd
 a8d34313c01d6770ecaeddfcbebc0be7 *man/timedelay-internal.Rd
-1e3d84db4acc95b7d7e1708404df8ef0 *man/timedelay-package.Rd
+ffac9913d36937c0af71b31398987cf2 *man/timedelay-package.Rd

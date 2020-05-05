@@ -10,8 +10,8 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
   \tabular{ll}{
     Package: \tab timedelay\cr
     Type: \tab Package\cr
-    Version: \tab 1.0.9\cr
-    Date: \tab 2020-05-03\cr
+    Version: \tab 1.0.10\cr
+    Date: \tab 2020-05-05\cr
     License: \tab GPL-2\cr
     Main functions: \tab \code{\link{bayesian}}, \code{\link{bayesian.multiband}}, \code{\link{entirelogprofilelikelihood}}\cr
   }
