@@ -1,4 +1,4 @@
-419a75989a52f4615a135a10b5c8a3af *DESCRIPTION
+cb23c1dfa0946909bd37bcdd93ae4719 *DESCRIPTION
 122c642705926caae99c196a19743e4f *NAMESPACE
 01157db174d54193692ce49d82f6c926 *R/bayesian.R
 e121d1063399602d844287d6d8b59930 *R/bayesian.multiband.R
@@ -6,11 +6,11 @@ e121d1063399602d844287d6d8b59930 *R/bayesian.multiband.R
 2935e2a8dc6f1c6358d48d2681dcfd11 *data/simple.RData
 1b094624e6a767d39b2d21d491403bdd *data/simple.band1.RData
 615e52f95e73e10749a6b2ebd1020d22 *data/simple.band2.RData
-41917c497c8366ee9992959275d88b3b *man/bayesian.Rd
-76cb04f6932a2a8d55e4f160907f278c *man/bayesian.multiband.Rd
+8bf67fea884afd378bd0b33b882ca2fa *man/bayesian.Rd
+8e038a427837ecc6efd1718ebfe859d2 *man/bayesian.multiband.Rd
 c930b98c4b3f8e70ff236e0d4918c75f *man/entirelogprofilelikelihood.Rd
 8a96d701ef76fff4f5f28cf6993b66b8 *man/simple.Rd
 bf08d9dd1e09823e67c3a9808c619df2 *man/simple.band1.Rd
 d121df1f94b661df0c04fe9aaffce6cd *man/simple.band2.Rd
 a8d34313c01d6770ecaeddfcbebc0be7 *man/timedelay-internal.Rd
-ffac9913d36937c0af71b31398987cf2 *man/timedelay-package.Rd
+1e4e0b71a20adec9d49fe80f6cdf73f2 *man/timedelay-package.Rd

@@ -114,6 +114,7 @@ Please note that when astronomical time series data are loaded on R by \code{rea
 \references{
     Hyungsuk Tak, Kaisey Mandel, David A. van Dyk, Vinay L. Kashyap, Xiao-Li Meng, and Aneta Siemiginowska (2017). "Bayesian Estimates of Astronomical Time Delays between Gravitationally Lensed Stochastic Light Curves," The Annals of Applied Statistics, 11 (3), 1309-1348.
     Hyungsuk Tak, Xiao-Li Meng, and David A. van Dyk (2018), "A Repelling-Attracting Metropolis Algorithm for Multimodality", Journal of Computational and Graphical Statistics, 27 (3), 479-490.
+    Zhirui Hu and Hyungsuk Tak (2020+), "Modeling Stochastic Variability in  Multi-Band Time Series Data," arXiv:2005.08049.
 }
 
 \author{

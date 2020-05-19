@@ -10,8 +10,8 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
   \tabular{ll}{
     Package: \tab timedelay\cr
     Type: \tab Package\cr
-    Version: \tab 1.0.10\cr
-    Date: \tab 2020-05-05\cr
+    Version: \tab 1.0.11\cr
+    Date: \tab 2020-05-18\cr
     License: \tab GPL-2\cr
     Main functions: \tab \code{\link{bayesian}}, \code{\link{bayesian.multiband}}, \code{\link{entirelogprofilelikelihood}}\cr
   }
@@ -25,6 +25,7 @@ The R package \pkg{timedelay} provides a toolbox to estimate the time delay betw
 \references{
     Hyungsuk Tak, Kaisey Mandel, David A. van Dyk, Vinay L. Kashyap, Xiao-Li Meng, and Aneta Siemiginowska (2017). "Bayesian Estimates of Astronomical Time Delays between Gravitationally Lensed Stochastic Light Curves," The Annals of Applied Statistics, 11 (3), 1309-1348.
     Hyungsuk Tak, Xiao-Li Meng, and David A. van Dyk (2018), "A Repelling-Attracting Metropolis Algorithm for Multimodality", Journal of Computational and Graphical Statistics, 27 (3), 479-490.
+    Zhirui Hu and Hyungsuk Tak (2020+), "Modeling Stochastic Variability in  Multi-Band Time Series Data," arXiv:2005.08049.
 }
 \examples{
 
